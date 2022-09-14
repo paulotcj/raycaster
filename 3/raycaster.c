@@ -35,23 +35,43 @@ void drawMap2D()
     {
         for(x = 0 ; x < mapX ; x++)
         {
-            //We are using a 1D array and making it behave as it was a 2D array of 8x8 (64 items)
-            //this could be: 0*8 + 1  = 0  + 1 = 1
-            //               2*8 + 5  = 16 + 5 = 21
-            if( map[y*mapX + x] == 1 )
+            //We are using a 1D array and making it behave as it was a 2D array of 8x8 (64 items) this could be: 
+            // idx: 0    - y*mapX: 0 ,     x: 0 
+            // idx: 1    - y*mapX: 0 ,     x: 1 
+            // ...
+            // idx: 7    - y*mapX: 0 ,     x: 7 
+            // idx: 8    - y*mapX: 8 ,     x: 0 
+            // idx: 9    - y*mapX: 8 ,     x: 1 
+            // idx: 10   - y*mapX: 8 ,     x: 2 
+            // ...
+            // idx: 62   - y*mapX: 56 ,    x: 6 
+            // idx: 63   - y*mapX: 56 ,    x: 7            
+
+            int idx = y*mapX + x;
+            //printf("idx: %d   - y*mapX: %d ,    x: %d \n",idx, y*mapX, x);
+            if( map[idx] == 1 )
             { glColor3f(1,1,1); }
             else 
             { glColor3f(0,0,0); }
 
+            //printf("x*mapS: %d   - y*mapS: %d\n",x*mapS,y*mapS);
             x0 = x*mapS;
             y0 = y*mapS;
 
             glBegin(GL_QUADS);
-            glVertex2i(x0      , y0        );
-            glVertex2i(x0      , y0 + mapS );
-            glVertex2i(x0+mapS , y0 + mapS );
-            glVertex2i(x0+mapS , y0        );
+            glVertex2i(x0      +1 , y0         +1);
+            glVertex2i(x0      +1 , y0 + mapS  -1);
+            glVertex2i(x0+mapS -1 , y0 + mapS  -1);
+            glVertex2i(x0+mapS -1 , y0         +1);
             glEnd();
+
+            // X      , Y
+            // 0      , 0
+            // 0      , 0 + 64
+            // 0 + 64 , 0 + 64
+            // 0 + 64 , 0
+
+            //getchar();
 
         }
     }
