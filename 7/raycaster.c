@@ -88,7 +88,17 @@ void drawMap2D()
         }
     }
 }
-void drawRays3D()
+
+
+float dist(float ax, float ay, float bx, float by, float ang)
+{
+    return ( sqrt( (bx-ax) * (bx-ax) + (by-ay) * (by-ay) )  );
+}
+
+
+
+
+void drawRays2D()
 {
     int r, mx, my, mp, dof;
     float rx, ry, ra, x0, y0;
@@ -99,6 +109,7 @@ void drawRays3D()
 
         //check horizontal lines
         dof = 0;
+        float disH = 1000000, hx = px , hy = py;
         float aTan = -1 / tan(ra);
         // num >> 6 = divide by 64    and   num << 6 = multiply by 64
         if(ra > PI){ ry = ( ((int)py >> 6) << 6 ) - 0.0001; rx = (py - ry) * aTan + px; y0 = -64; x0 = -y0*aTan;  } //looking up
@@ -108,20 +119,21 @@ void drawRays3D()
         while(dof < 8) //this is max depth of the map - we do not need to check further if that's the case
         {
             mx = (int)(rx) >> 6; my = (int)(ry) >> 6; mp = my*mapX + mx;  
-            if(mp > 0 && mp < mapX * mapY && map[mp] == 1){ dof = 8;} //hit wall
+            if(mp > 0 && mp < mapX * mapY && map[mp] == 1){ hx = rx; hy = ry; disH = dist(px,py,hx,hy,ra); dof = 8;} //hit wall
             else{ rx += x0; ry += y0; dof += 1; } //next line
         }
 
-        glColor3f(0,1,0);
-        glLineWidth(6);
-        glBegin(GL_LINES);
-        glVertex2i(px, py);
-        glVertex2i(rx, ry);
-        glEnd();
+        // glColor3f(0,1,0);
+        // glLineWidth(6);
+        // glBegin(GL_LINES);
+        // glVertex2i(px, py);
+        // glVertex2i(rx, ry);
+        // glEnd();
 
 
         //check vertical lines
         dof = 0;
+        float disV = 1000000, vx = px , vy = py;
         float nTan = -tan(ra); //negative tangent
         // num >> 6 = divide by 64    and   num << 6 = multiply by 64
         if( ra > P2 && ra <  P3 ){ rx = ( ((int)px >> 6) << 6 ) - 0.0001; ry = (px - rx) * nTan + py; x0 = -64; y0 = -x0*nTan;  } //looking left
@@ -131,9 +143,12 @@ void drawRays3D()
         while(dof < 8) //this is max depth of the map - we do not need to check further if that's the case
         {
             mx = (int)(rx) >> 6; my = (int)(ry) >> 6; mp = my*mapX + mx;  
-            if(mp > 0 && mp < mapX * mapY && map[mp] == 1){ dof = 8;} //hit wall
+            if(mp > 0 && mp < mapX * mapY && map[mp] == 1){ vx = rx; vy = ry; disV = dist(px,py,vx,vy,ra); dof = 8;} //hit wall
             else{ rx += x0; ry += y0; dof += 1; } //next line
         }
+
+        if(disV < disH){ rx = vx; ry = vy; }
+        if(disH < disV){ rx = hx; ry = hy;}
 
         glColor3f(1,0,0);
         glLineWidth(3);
@@ -151,7 +166,7 @@ void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT   );
     drawMap2D();
-    drawRays3D();
+    drawRays2D();
     drawPlayer();
     glutSwapBuffers();
 }

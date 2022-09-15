@@ -88,7 +88,7 @@ void drawMap2D()
         }
     }
 }
-void drawRays3D()
+void drawRays2D()
 {
     int r, mx, my, mp, dof;
     float rx, ry, ra, x0, y0;
@@ -151,7 +151,7 @@ void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT   );
     drawMap2D();
-    drawRays3D();
+    drawRays2D();
     drawPlayer();
     glutSwapBuffers();
 }
