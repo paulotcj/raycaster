@@ -102,12 +102,12 @@ float dist(float ax, float ay, float bx, float by, float ang)
 void drawRays2D()
 {
     int r, mx, my, mp, dof;
-    float rx, ry, ra, x0, y0;
+    float rx, ry, ra, x0, y0, disT;
     ra=pa-DR*30;
-    if( ra < 0){ ra+= 2*PI; }
-    if( ra > 2*PI){ ra-= 2*PI; }
+    if( ra < 0    ){ ra+= 2*PI; }
+    if( ra > 2*PI ){ ra-= 2*PI; }
 
-    for(r = 0 ; r < 1 ; r++ )
+    for(r = 0 ; r < 60 ; r++ )
     {
 
         //check horizontal lines
@@ -150,8 +150,8 @@ void drawRays2D()
             else{ rx += x0; ry += y0; dof += 1; } //next line
         }
 
-        if(disV < disH){ rx = vx; ry = vy; }
-        if(disH < disV){ rx = hx; ry = hy;}
+        if(disV < disH){ rx = vx; ry = vy; disT = disV; }
+        if(disH < disV){ rx = hx; ry = hy; disT = disH; }
 
         glColor3f(1,0,0);
         glLineWidth(3);
@@ -160,6 +160,26 @@ void drawRays2D()
         glVertex2i(rx, ry);
         glEnd();
 
+        //Draw 3D - start
+        float ca = pa-ra; 
+        if( ca < 0    ){ ca+= 2*PI; }
+        if( ca > 2*PI ){ ca-= 2*PI; }
+        disT = disT * cos(ca); //fix fisheye
+
+        float lineH = (mapS * 320 )/disT;
+        if(lineH > 320){ lineH = 320;} //line height
+        float lineO = 160 - lineH/2;
+        glLineWidth(8);
+        glBegin(GL_LINES);
+        glVertex2i(r*8 + 530, lineO         );
+        glVertex2i(r*8 + 530, lineO + lineH );
+        glEnd();
+
+        //Draw 3D - end
+
+        ra+=DR;
+        if( ra < 0    ){ ra+= 2*PI; }
+        if( ra > 2*PI ){ ra-= 2*PI; }
     }
 
 
