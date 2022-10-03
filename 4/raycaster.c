@@ -6,11 +6,13 @@
 #define PI 3.1415926535
 
 float px,py;//player pos x , pos y
-float pdx, pdy; //player deltas
+float pdx, pdy; //player deltas - this is the intensity to which we are moving on the X/Y axis
 float pa; //player angle
 
 void drawPlayer()
 {
+    int intensityMulti = 5;
+
     glColor3f(1,1,0);
     glPointSize(8);
     glBegin(GL_POINTS);
@@ -19,8 +21,8 @@ void drawPlayer()
 
     glLineWidth(3);
     glBegin(GL_LINES);
-    glVertex2i(px          , py         );
-    glVertex2i(px + pdx*5  , py + pdy*5 );
+    glVertex2i(px                       , py                        );
+    glVertex2i(px + pdx*intensityMulti  , py + pdy*intensityMulti   );
     glEnd();
 }
 
@@ -100,13 +102,14 @@ void buttons(unsigned char key, int x ,int y)
 {
     //pa => player angle
 
+    int multiplayingFactor = 5;
     
-    if(key=='a'){ pa -= 0.1; printf("pa: %f ", pa); if( pa < 0    ){ pa += 2*PI; printf("  ding!  ");} printf("pa after: %f \n", pa); pdx = cos(pa)*5; pdy = sin(pa)*5; }
-    if(key=='d'){ pa += 0.1; printf("pa: %f ", pa); if( pa > 2*PI ){ pa -= 2*PI; printf("  dong!  ");} printf("pa after: %f \n", pa); pdx = cos(pa)*5; pdy = sin(pa)*5; }
+    if(key=='a'){ pa -= 0.1; if( pa < 0    ){ pa += 2*PI; } pdx = cos(pa)*multiplayingFactor; pdy = sin(pa)*multiplayingFactor; }
+    if(key=='d'){ pa += 0.1; if( pa > 2*PI ){ pa -= 2*PI; } pdx = cos(pa)*multiplayingFactor; pdy = sin(pa)*multiplayingFactor; }
     if(key=='w'){ px += pdx; py += pdy; }
     if(key=='s'){ px -= pdx; py -= pdy; }
 
-    //printf("pa: %f \n", pa);                                          
+    printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n",pa, px, py, pdx, pdy);
 
     glutPostRedisplay();
 }

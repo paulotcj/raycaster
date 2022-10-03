@@ -4,12 +4,9 @@
 #include <math.h>
 
 #define PI 3.1415926535
-#define P2 PI/2
-#define P3 3*PI/2
-#define DR 0.0174533
 
 float px,py;//player pos x , pos y
-float pdx, pdy; //player deltas - this is the intensity to which we are moving on the X/Y axis
+float pdx, pdy; //player deltas
 float pa; //player angle
 
 void drawPlayer()
@@ -91,85 +88,10 @@ void drawMap2D()
 }
 
 
-float dist(float ax, float ay, float bx, float by, float ang)
-{
-    return ( sqrt( (bx-ax) * (bx-ax) + (by-ay) * (by-ay) )  );
-}
-
-
-
-
-void drawRays2D()
-{
-    int r, mx, my, mp, dof;
-    float rx, ry, ra, x0, y0;
-    ra=pa-DR*30;
-    if( ra < 0){ ra+= 2*PI; }
-    if( ra > 2*PI){ ra-= 2*PI; }
-
-    for(r = 0 ; r < 1 ; r++ )
-    {
-
-        //check horizontal lines
-        dof = 0;
-        float disH = 1000000, hx = px , hy = py;
-        float aTan = -1 / tan(ra);
-        // num >> 6 = divide by 64    and   num << 6 = multiply by 64
-        if(ra > PI){ ry = ( ((int)py >> 6) << 6 ) - 0.0001; rx = (py - ry) * aTan + px; y0 = -64; x0 = -y0*aTan;  } //looking up
-        if(ra < PI){ ry = ( ((int)py >> 6) << 6 ) + 64;     rx = (py - ry) * aTan + px; y0 =  64; x0 = -y0*aTan;  } //looking down
-        if(ra == 0 || ra == PI){ rx = px; ry = py; dof = 8; } //looking straight left or right
-        
-        while(dof < 8) //this is max depth of the map - we do not need to check further if that's the case
-        {
-            mx = (int)(rx) >> 6; my = (int)(ry) >> 6; mp = my*mapX + mx;  
-            if(mp > 0 && mp < mapX * mapY && map[mp] == 1){ hx = rx; hy = ry; disH = dist(px,py,hx,hy,ra); dof = 8;} //hit wall
-            else{ rx += x0; ry += y0; dof += 1; } //next line
-        }
-
-        // glColor3f(0,1,0);
-        // glLineWidth(6);
-        // glBegin(GL_LINES);
-        // glVertex2i(px, py);
-        // glVertex2i(rx, ry);
-        // glEnd();
-
-
-        //check vertical lines
-        dof = 0;
-        float disV = 1000000, vx = px , vy = py;
-        float nTan = -tan(ra); //negative tangent
-        // num >> 6 = divide by 64    and   num << 6 = multiply by 64
-        if( ra > P2 && ra <  P3 ){ rx = ( ((int)px >> 6) << 6 ) - 0.0001; ry = (px - rx) * nTan + py; x0 = -64; y0 = -x0*nTan;  } //looking left
-        if( ra < P2 || ra >  P3 ){ rx = ( ((int)px >> 6) << 6 ) + 64;     ry = (px - rx) * nTan + py; x0 =  64; y0 = -x0*nTan;  } //looking right
-        if( ra == 0 || ra == PI ){ rx = px; ry = py; dof = 8; } //looking straight up or down
-        
-        while(dof < 8) //this is max depth of the map - we do not need to check further if that's the case
-        {
-            mx = (int)(rx) >> 6; my = (int)(ry) >> 6; mp = my*mapX + mx;  
-            if(mp > 0 && mp < mapX * mapY && map[mp] == 1){ vx = rx; vy = ry; disV = dist(px,py,vx,vy,ra); dof = 8;} //hit wall
-            else{ rx += x0; ry += y0; dof += 1; } //next line
-        }
-
-        if(disV < disH){ rx = vx; ry = vy; }
-        if(disH < disV){ rx = hx; ry = hy;}
-
-        glColor3f(1,0,0);
-        glLineWidth(3);
-        glBegin(GL_LINES);
-        glVertex2i(px, py);
-        glVertex2i(rx, ry);
-        glEnd();
-
-    }
-
-
-}
-
 void display()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT   );
     drawMap2D();
-    drawRays2D();
     drawPlayer();
     glutSwapBuffers();
 }
@@ -178,11 +100,14 @@ void buttons(unsigned char key, int x ,int y)
 {
     //pa => player angle
 
+    int multiplayingFactor = 5;
     
-    if(key=='a'){ pa -= 0.1; if( pa < 0    ){ pa += 2*PI; }  pdx = cos(pa)*5; pdy = sin(pa)*5; }
-    if(key=='d'){ pa += 0.1; if( pa > 2*PI ){ pa -= 2*PI; }  pdx = cos(pa)*5; pdy = sin(pa)*5; }
+    if(key=='a'){ pa -= 0.1; printf("pa: %f ", pa); if( pa < 0    ){ pa += 2*PI; printf("  ding!  ");} printf("pa after: %f \n", pa); pdx = cos(pa)*multiplayingFactor; pdy = sin(pa)*multiplayingFactor; }
+    if(key=='d'){ pa += 0.1; printf("pa: %f ", pa); if( pa > 2*PI ){ pa -= 2*PI; printf("  dong!  ");} printf("pa after: %f \n", pa); pdx = cos(pa)*multiplayingFactor; pdy = sin(pa)*multiplayingFactor; }
     if(key=='w'){ px += pdx; py += pdy; }
     if(key=='s'){ px -= pdx; py -= pdy; }
+
+    //printf("pa: %f \n", pa);                                          
 
     glutPostRedisplay();
 }

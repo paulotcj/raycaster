@@ -9,7 +9,7 @@
 #define DR 0.0174533
 
 float px,py;//player pos x , pos y
-float pdx, pdy; //player deltas
+float pdx, pdy; //player deltas - this is the intensity to which we are moving on the X/Y axis
 float pa; //player angle
 
 void drawPlayer()
