@@ -55,6 +55,12 @@ struct MapDetails
     const int map[];
 };
 
+struct RayDetails
+{
+    int RayPositionRound;
+};
+
+//-----------------------------------------------
 struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor4f = {0.3f, 0.3f, 0.3f, 0}};
 struct PlayerDetails playerDet = { .pointSize = 8, .x = 300, .y = 300, .deltaX = 5, /* cos(0)*5 */
                                    .deltaY = 0,                                  /* sin(0)*5 */
@@ -87,6 +93,7 @@ struct MapDetails mapDet = { .map = {
                             .firstTileColor3f = {0.8f, 0.8f, 0.8f},
                             .lineThickness =1 };
 
+struct RayDetails rayDetails = { .RayPositionRound = 6};
 //-----------------------------------------------
 
 
@@ -170,6 +177,7 @@ void drawMap2D()
 }
 void drawRays2D()
 {
+    //-----------
     //int r;
     int mx, my, mp, depthOfField;
     float rayXPos, rayYPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
@@ -177,6 +185,7 @@ void drawRays2D()
 
     int mapMaxDepth = max_num(mapDet.width, mapDet.height);
     const float accuracyConst = 0.0001;
+    float roundUp = 0;
 
     //check horizontal lines
     depthOfField = 0;
@@ -187,27 +196,58 @@ void drawRays2D()
     // looking up is between 0 deg and 180 deg, which in radians, which in this application is between +6.28 and +3.14
     // anything else is looking down
 
+    //printf("raysAngle: %f - PI: %f\n",raysAngle, PI);
+
     //we also need to round the ray position to the nearest 64 value (blocksize)
     // it's done by bit shiftting right by 6, which is (num >> 6) and then bit shiftting left by 6 (num << 6)
     // the 6 in this case is equivalent dividing by 64
     // e.g.:     69 >> 6 = 1   ---> 1000101 >> 6 = 1 (we just lost all the less significant digits)
     // and then: 1 << 6 =  1000000 ---> 64
 
-    printf("raysAngle: %f - PI: %f\n",raysAngle, PI);
-    if(      raysAngle > PI ){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) - accuracyConst; rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset = -64; xOffset = -yOffset*aTan;  } //looking up
-    else if( raysAngle < PI ){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) + 64;            rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset =  64; xOffset = -yOffset*aTan;  } //looking down
-    if(raysAngle == 0 || raysAngle == PI){ rayXPos = playerDet.x; rayYPos = playerDet.y; depthOfField = 8; } //looking straight left or right
+    if(raysAngle == 0 || raysAngle == PI) //looking directly left or right
+    { 
+        rayYPos = playerDet.y;
+        rayXPos = playerDet.x;  
+        depthOfField = mapMaxDepth;
+    } 
+    else if( raysAngle > PI ) //looking up
+    { 
+        roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ;
+        rayYPos =  roundUp - accuracyConst;     
+        rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; 
+        yOffset = -mapDet.tileSizePx; 
+        xOffset = -yOffset*aTan;  
+    } 
+    else if( raysAngle < PI )//looking down
+    { 
+        roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound;
+        rayYPos = roundUp + mapDet.tileSizePx; 
+        rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; 
+        yOffset =  mapDet.tileSizePx; 
+        xOffset = -yOffset*aTan;  
+    } 
+    
     
     //-----------
+    //printf("before: while(depthOfField < mapMaxDepth)\n");
     while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
     {
-        mx = (int)(rayXPos) >> 6; my = (int)(rayYPos) >> 6; mp = my*mapDet.width + mx;  
+        //printf("inside: while(depthOfField < mapMaxDepth)\n");
+        
+        mx = (int)(rayXPos) >> rayDetails.RayPositionRound; 
+        my = (int)(rayYPos) >> rayDetails.RayPositionRound; 
+        mp = my*mapDet.width + mx;  
 
-        if(mp < mapDet.width * mapDet.height && mapDet.map[mp] == 1)
-        { depthOfField = 8;} //hit wall
+        if(mp < mapDet.width * mapDet.height && mapDet.map[mp] == 1) //hit wall
+        { depthOfField = mapMaxDepth;} 
         else
-        { rayXPos += xOffset; rayYPos += yOffset; depthOfField += 1; } //next line
+        {   //next line
+            rayXPos += xOffset; 
+            rayYPos += yOffset; 
+            depthOfField += 1; 
+        } 
     }
+   //printf("after: while(depthOfField < mapMaxDepth)\n");
     //-----------
     
     glColor3f(playerImpDet.beamColor3f[0],playerImpDet.beamColor3f[1],playerImpDet.beamColor3f[2]);
@@ -247,6 +287,8 @@ void init()
     gluOrtho2D(0,window.width,window.height,0);
     //px=300; py=300;
     // pdx = cos(pa)*5; pdy = sin(pa)*5;
+    rayDetails.RayPositionRound = (int)(ceil(log(mapDet.tileSizePx) / log(2)));
+    printf("rayDetails.RayPositionRound: %d\n", rayDetails.RayPositionRound);
 }
 
 int main(int argc, char* argv[])
