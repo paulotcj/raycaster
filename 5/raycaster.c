@@ -172,7 +172,7 @@ void drawRays2D()
 {
     //int r;
     int mx, my, mp, depthOfField;
-    float rayXPos, rayYPos, raysAngle, xOffset, yOffset;
+    float rayXPos, rayYPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
     raysAngle=playerDet.angle;
 
     int mapMaxDepth = max_num(mapDet.width, mapDet.height);
@@ -183,9 +183,19 @@ void drawRays2D()
     float aTan = -1 / tan(raysAngle); //finding angle???
 
     //-----------
-    // num >> 6 = divide by 64    and   num << 6 = multiply by 64
-    if(raysAngle > PI){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) - accuracyConst; rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset = -64; xOffset = -yOffset*aTan;  } //looking up
-    if(raysAngle < PI){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) + 64;            rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset =  64; xOffset = -yOffset*aTan;  } //looking down
+    //are we looking up or down?
+    // looking up is between 0 deg and 180 deg, which in radians, which in this application is between +6.28 and +3.14
+    // anything else is looking down
+
+    //we also need to round the ray position to the nearest 64 value (blocksize)
+    // it's done by bit shiftting right by 6, which is (num >> 6) and then bit shiftting left by 6 (num << 6)
+    // the 6 in this case is equivalent dividing by 64
+    // e.g.:     69 >> 6 = 1   ---> 1000101 >> 6 = 1 (we just lost all the less significant digits)
+    // and then: 1 << 6 =  1000000 ---> 64
+
+    printf("raysAngle: %f - PI: %f\n",raysAngle, PI);
+    if(      raysAngle > PI ){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) - accuracyConst; rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset = -64; xOffset = -yOffset*aTan;  } //looking up
+    else if( raysAngle < PI ){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) + 64;            rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset =  64; xOffset = -yOffset*aTan;  } //looking down
     if(raysAngle == 0 || raysAngle == PI){ rayXPos = playerDet.x; rayYPos = playerDet.y; depthOfField = 8; } //looking straight left or right
     
     //-----------
@@ -225,7 +235,7 @@ void buttons(unsigned char key, int x ,int y)
     if (key == 'w'){ playerDet.x += playerDet.deltaX; playerDet.y += playerDet.deltaY; }
     if (key == 's'){ playerDet.x -= playerDet.deltaX; playerDet.y -= playerDet.deltaY; }
 
-    printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n", playerDet.angle, playerDet.x, playerDet.y, playerDet.deltaX, playerDet.deltaY);
+    //printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n", playerDet.angle, playerDet.x, playerDet.y, playerDet.deltaX, playerDet.deltaY);
 
     glutPostRedisplay();
 }
