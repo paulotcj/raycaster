@@ -27,7 +27,7 @@ struct MapDetails
     int width;
     int height;
     int tileSizePx;
-    int lineThicknesslineThickness;
+    int lineThickness;
     float tileFloorColor3f[3];
     float tileWallColor3f[3];
     float firstTileColor3f[3];
@@ -56,7 +56,8 @@ struct MapDetails mapDet = {map : {
                             tileSizePx : 64,
                             tileFloorColor3f : {0.0f, 0.0f, 0.0f},
                             tileWallColor3f : {1.0f, 1.0f, 1.0f},
-                            firstTileColor3f : {0.8f, 0.8f, 0.8f}};
+                            firstTileColor3f : {0.8f, 0.8f, 0.8f},
+                            lineThickness :1 };
 
 //-----------------------------------------------
 
@@ -82,7 +83,7 @@ void drawPlayer()
 void drawMap2D()
 {
     int mapX = mapDet.width, mapY = mapDet.height, blockSize = mapDet.tileSizePx;
-    const int lineThickness = 1;
+    //const int lineThickness = 1;
     // the loop below executes mapY * mapX -> 8 * 8 = 64;
     int x, y, x0, y0;
     for (y = 0; y < mapY; y++) // we are looping through a 1D array
@@ -105,13 +106,9 @@ void drawMap2D()
             int idx = y * mapX + x;
             // printf("idx: %d   - y*mapX: %d ,    x: %d \n",idx, y*mapX, x);
             if (mapDet.map[idx] == 1) // wall
-            {
-                glColor3f(mapDet.tileWallColor3f[0], mapDet.tileWallColor3f[1], mapDet.tileWallColor3f[2]);
-            }
+            { glColor3f(mapDet.tileWallColor3f[0], mapDet.tileWallColor3f[1], mapDet.tileWallColor3f[2]); }
             else // floor
-            {
-                glColor3f(mapDet.tileFloorColor3f[0], mapDet.tileFloorColor3f[1], mapDet.tileFloorColor3f[2]);
-            }
+            { glColor3f(mapDet.tileFloorColor3f[0], mapDet.tileFloorColor3f[1], mapDet.tileFloorColor3f[2]); }
 
             // printf("x*blockSize: %d   - y*blockSize: %d\n",x*blockSize,y*blockSize);
             x0 = x * blockSize;
@@ -119,16 +116,14 @@ void drawMap2D()
 
             // mark the first tile
             if (x0 == 0 && y0 == 0)
-            {
-                glColor3f(mapDet.firstTileColor3f[0], mapDet.firstTileColor3f[1], mapDet.firstTileColor3f[2]);
-            } // mark the first 'tile'
+            { glColor3f(mapDet.firstTileColor3f[0], mapDet.firstTileColor3f[1], mapDet.firstTileColor3f[2]); }
 
             // printf("x0: %d, y0: %d \n", x0, y0);
             glBegin(GL_QUADS);
-            glVertex2i(x0, y0);
-            glVertex2i(x0, y0 + (blockSize - lineThickness));
-            glVertex2i(x0 + (blockSize - lineThickness), y0 + (blockSize - lineThickness));
-            glVertex2i(x0 + (blockSize - lineThickness), y0);
+            glVertex2i(x0,                                      y0                                     );
+            glVertex2i(x0,                                      y0 + (blockSize - mapDet.lineThickness));
+            glVertex2i(x0 + (blockSize - mapDet.lineThickness), y0 + (blockSize - mapDet.lineThickness));
+            glVertex2i(x0 + (blockSize - mapDet.lineThickness), y0                                     );
             glEnd();
 
             // X      , Y
@@ -153,36 +148,10 @@ void display()
 void buttons(unsigned char key, int x, int y)
 {
 
-    if (key == 'a')
-    {
-        playerDet.angle -= 0.1;
-        if (playerDet.angle < 0)
-        {
-            playerDet.angle += 2 * PI;
-        }
-        playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier;
-        playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier;
-    }
-    if (key == 'd')
-    {
-        playerDet.angle += 0.1;
-        if (playerDet.angle > 2 * PI)
-        {
-            playerDet.angle -= 2 * PI;
-        }
-        playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier;
-        playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier;
-    }
-    if (key == 'w')
-    {
-        playerDet.x += playerDet.deltaX;
-        playerDet.y += playerDet.deltaY;
-    }
-    if (key == 's')
-    {
-        playerDet.x -= playerDet.deltaX;
-        playerDet.y -= playerDet.deltaY;
-    }
+    if (key == 'a'){ playerDet.angle -= 0.1; if(playerDet.angle < 0     ){ playerDet.angle += 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
+    if (key == 'd'){ playerDet.angle += 0.1; if(playerDet.angle > 2 * PI){ playerDet.angle -= 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
+    if (key == 'w'){ playerDet.x += playerDet.deltaX; playerDet.y += playerDet.deltaY; }
+    if (key == 's'){ playerDet.x -= playerDet.deltaX; playerDet.y -= playerDet.deltaY; }
 
     printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n", playerDet.angle, playerDet.x, playerDet.y, playerDet.deltaX, playerDet.deltaY);
 
