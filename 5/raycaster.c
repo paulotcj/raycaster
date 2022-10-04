@@ -45,17 +45,17 @@ struct MapDetails
     const int map[];
 };
 
-struct WindowProperties window = {height : 512, width : 1024, backgroundColor4f : {0.3f, 0.3f, 0.3f, 0}};
-struct PlayerDetails playerDet = {pointSize : 8, x : 300, y : 300, deltaX : 5, /* cos(0)*5 */
-                                  deltaY : 0,                                  /* sin(0)*5 */
-                                  angle : 0,
-                                  deltaMultiplier : 5,
-                                  playerColor3f : {1.0f, 0.0f, 1.0f},
-                                  directionVectorMultiplier: 5};
+struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor4f = {0.3f, 0.3f, 0.3f, 0}};
+struct PlayerDetails playerDet = { .pointSize = 8, .x = 300, .y = 300, .deltaX = 5, /* cos(0)*5 */
+                                   .deltaY = 0,                                  /* sin(0)*5 */
+                                   .angle = 0,
+                                   .deltaMultiplier = 5,
+                                   .playerColor3f = {1.0f, 0.0f, 1.0f},
+                                   .directionVectorMultiplier = 5};
 
-struct ControlsDetails controlDet = {angleStep : 0.1f};
+struct ControlsDetails controlDet = { .angleStep = 0.1f};
 
-struct MapDetails mapDet = {map : {
+struct MapDetails mapDet = { .map = {
                                     1,1,1,1,1,1,1,1, //the map array. Edit to change level but keep the outer walls
                                     1,0,1,0,0,0,0,1,
                                     1,0,1,0,0,0,0,1,
@@ -65,15 +65,19 @@ struct MapDetails mapDet = {map : {
                                     1,0,0,0,0,0,0,1,
                                     1,1,1,1,1,1,1,1,	
                             },
-                            width : 8,
-                            height : 8,
-                            tileSizePx : 64,
-                            tileFloorColor3f : {0.0f, 0.0f, 0.0f},
-                            tileWallColor3f : {1.0f, 1.0f, 1.0f},
-                            firstTileColor3f : {0.8f, 0.8f, 0.8f},
-                            lineThickness :1 };
+                            .width = 8,
+                            .height = 8,
+                            .tileSizePx = 64,
+                            .tileFloorColor3f = {0.0f, 0.0f, 0.0f},
+                            .tileWallColor3f = {1.0f, 1.0f, 1.0f},
+                            .firstTileColor3f = {0.8f, 0.8f, 0.8f},
+                            .lineThickness =1 };
 
 //-----------------------------------------------
+
+
+
+
 
 void drawPlayer()
 {
@@ -181,14 +185,14 @@ void drawRays2D()
 
 void display()
 {
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT   );
     drawMap2D();
     drawRays2D();
     drawPlayer();
     glutSwapBuffers();
 }
 
-void buttons(unsigned char key, int x, int y)
+void buttons(unsigned char key, int x ,int y)
 {
     //note: the circle is 2 * PI, so every time the angle is less than zero or above 2*PI, we have to 'reset' it
     if (key == 'a'){ playerDet.angle -= controlDet.angleStep; if(playerDet.angle < 0     ){ playerDet.angle += 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
@@ -201,15 +205,16 @@ void buttons(unsigned char key, int x, int y)
     glutPostRedisplay();
 }
 
+
 void init()
 {
-    glClearColor(window.backgroundColor4f[0], window.backgroundColor4f[1], window.backgroundColor4f[2], window.backgroundColor4f[3]); // red, green, blue, alpha
-    gluOrtho2D(0, window.width, window.height, 0);
-    // px=300; py=300;
+    glClearColor(window.backgroundColor4f[0],window.backgroundColor4f[1],window.backgroundColor4f[2],window.backgroundColor4f[3]); //red, green, blue, alpha
+    gluOrtho2D(0,window.width,window.height,0);
+    //px=300; py=300;
     // pdx = cos(pa)*5; pdy = sin(pa)*5;
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     printf("environment and application: OK\n");
     glutInit(&argc, argv);
@@ -220,7 +225,9 @@ int main(int argc, char *argv[])
     glutDisplayFunc(display);
     glutKeyboardFunc(buttons);
     glutMainLoop();
+
 }
+
 
 //install glut: sudo apt-get install freeglut3-dev
 //compile on linux
