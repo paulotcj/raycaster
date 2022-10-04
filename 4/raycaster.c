@@ -193,7 +193,11 @@ int main(int argc, char *argv[])
     glutMainLoop();
 }
 
-// install glut: sudo apt-get install freeglut3-dev
-// compile on linux
+//install glut: sudo apt-get install freeglut3-dev
+//compile on linux
 // use: gcc raycaster.c -lGL -lGLU -lglut -lm
+//      ./a.out
+//compile on linux
+
+// use: gcc raycaster.c -framework OpenGL -framework GLUT
 //      ./a.out
