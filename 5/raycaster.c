@@ -9,6 +9,7 @@
 #endif
 #include <math.h>
 #define PI 3.141592653589793238
+#define max_num(x,y) (((x) >= (y)) ? (x) : (y))
 
 struct WindowProperties
 {
@@ -25,11 +26,20 @@ struct PlayerDetails
     float deltaX; // player deltas - this is the intensity to which we are moving on the X/Y axis
     float deltaY;
     int deltaMultiplier;
+    //int directionVectorMultiplier;
+    //float playerColor3f[3];
+};
+
+struct PlayerImplementationDetails
+{
     int directionVectorMultiplier;
+    int beamThickness;
+    float beamColor3f[3];
     float playerColor3f[3];
 };
 
-struct ControlsDetails{
+struct ControlsDetails
+{
     float angleStep;
 };
 
@@ -49,9 +59,13 @@ struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColo
 struct PlayerDetails playerDet = { .pointSize = 8, .x = 300, .y = 300, .deltaX = 5, /* cos(0)*5 */
                                    .deltaY = 0,                                  /* sin(0)*5 */
                                    .angle = 0,
-                                   .deltaMultiplier = 5,
-                                   .playerColor3f = {1.0f, 0.0f, 1.0f},
-                                   .directionVectorMultiplier = 5};
+                                   .deltaMultiplier = 5
+};
+struct PlayerImplementationDetails playerImpDet = 
+{
+    .directionVectorMultiplier = 5, .beamThickness = 1, .beamColor3f = {0.0f,1.0f,0.0f}, 
+    .playerColor3f = {1.0f, 0.0f, 1.0f}
+};
 
 struct ControlsDetails controlDet = { .angleStep = 0.1f};
 
@@ -82,15 +96,15 @@ struct MapDetails mapDet = { .map = {
 void drawPlayer()
 {
     // player dot
-    glColor3f( playerDet.playerColor3f[0], playerDet.playerColor3f[1], playerDet.playerColor3f[2]);
+    glColor3f( playerImpDet.playerColor3f[0], playerImpDet.playerColor3f[1], playerImpDet.playerColor3f[2]);
     glPointSize(playerDet.pointSize);
     glBegin(GL_POINTS);
     glVertex2i(playerDet.x, playerDet.y);
     glEnd();
 
     // direction
-    int x1 = playerDet.x + playerDet.deltaX * playerDet.directionVectorMultiplier;
-    int y1 = playerDet.y + playerDet.deltaY * playerDet.directionVectorMultiplier;
+    int x1 = playerDet.x + playerDet.deltaX * playerImpDet.directionVectorMultiplier;
+    int y1 = playerDet.y + playerDet.deltaY * playerImpDet.directionVectorMultiplier;
     glLineWidth(3);
     glBegin(GL_LINES);
     glVertex2i(playerDet.x, playerDet.y);
@@ -103,7 +117,7 @@ void drawMap2D()
     int mapX = mapDet.width, mapY = mapDet.height, blockSize = mapDet.tileSizePx;
     //const int lineThickness = 1;
     // the loop below executes mapY * mapX -> 8 * 8 = 64;
-    int x, y, x0, y0;
+    int x, y, xOffset, yOffset;
     for (y = 0; y < mapY; y++) // we are looping through a 1D array
     {
         for (x = 0; x < mapX; x++)
@@ -129,19 +143,19 @@ void drawMap2D()
             { glColor3f(mapDet.tileFloorColor3f[0], mapDet.tileFloorColor3f[1], mapDet.tileFloorColor3f[2]); }
 
             // printf("x*blockSize: %d   - y*blockSize: %d\n",x*blockSize,y*blockSize);
-            x0 = x * blockSize;
-            y0 = y * blockSize;
+            xOffset = x * blockSize;
+            yOffset = y * blockSize;
 
             // mark the first tile
-            if (x0 == 0 && y0 == 0)
+            if (xOffset == 0 && yOffset == 0)
             { glColor3f(mapDet.firstTileColor3f[0], mapDet.firstTileColor3f[1], mapDet.firstTileColor3f[2]); }
 
             // printf("x0: %d, y0: %d \n", x0, y0);
             glBegin(GL_QUADS);
-            glVertex2i(x0,                                      y0                                     );
-            glVertex2i(x0,                                      y0 + (blockSize - mapDet.lineThickness));
-            glVertex2i(x0 + (blockSize - mapDet.lineThickness), y0 + (blockSize - mapDet.lineThickness));
-            glVertex2i(x0 + (blockSize - mapDet.lineThickness), y0                                     );
+            glVertex2i(xOffset,                                      yOffset                                     );
+            glVertex2i(xOffset,                                      yOffset + (blockSize - mapDet.lineThickness));
+            glVertex2i(xOffset + (blockSize - mapDet.lineThickness), yOffset + (blockSize - mapDet.lineThickness));
+            glVertex2i(xOffset + (blockSize - mapDet.lineThickness), yOffset                                     );
             glEnd();
 
             // X      , Y
@@ -156,30 +170,41 @@ void drawMap2D()
 }
 void drawRays2D()
 {
-    int r, mx, my, mp, dof;
-    float rx, ry, ra, x0, y0;
-    ra=playerDet.angle;
+    //int r;
+    int mx, my, mp, depthOfField;
+    float rayXPos, rayYPos, raysAngle, xOffset, yOffset;
+    raysAngle=playerDet.angle;
+
+    int mapMaxDepth = max_num(mapDet.width, mapDet.height);
+    const float accuracyConst = 0.0001;
 
     //check horizontal lines
-    dof = 0;
-    float aTan = -1 / tan(ra);
-    // num >> 6 = divide by 64    and   num << 6 = multiply by 64
-    if(ra > PI){ ry = ( ((int)playerDet.y >> 6) << 6 ) - 0.0001; rx = (playerDet.y - ry) * aTan + playerDet.x; y0 = -64; x0 = -y0*aTan;  } //looking up
-    if(ra < PI){ ry = ( ((int)playerDet.y >> 6) << 6 ) + 64;     rx = (playerDet.y - ry) * aTan + playerDet.x; y0 =  64; x0 = -y0*aTan;  } //looking down
-    if(ra == 0 || ra == PI){ rx = playerDet.x; ry = playerDet.y; dof = 8; } //looking straight left or right
-    
-    while(dof < 8) //this is max depth of the map - we do not need to check further if that's the case
-    {
-        mx = (int)(rx) >> 6; my = (int)(ry) >> 6; mp = my*mapDet.width + mx;  
-        if(mp < mapDet.width * mapDet.height && mapDet.map[mp] == 1){ dof = 8;} //hit wall
-        else{ rx += x0; ry += y0; dof += 1; } //next line
-    }
+    depthOfField = 0;
+    float aTan = -1 / tan(raysAngle); //finding angle???
 
-    glColor3f(0,1,0);
-    glLineWidth(1);
+    //-----------
+    // num >> 6 = divide by 64    and   num << 6 = multiply by 64
+    if(raysAngle > PI){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) - accuracyConst; rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset = -64; xOffset = -yOffset*aTan;  } //looking up
+    if(raysAngle < PI){ rayYPos = ( ((int)playerDet.y >> 6) << 6 ) + 64;            rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; yOffset =  64; xOffset = -yOffset*aTan;  } //looking down
+    if(raysAngle == 0 || raysAngle == PI){ rayXPos = playerDet.x; rayYPos = playerDet.y; depthOfField = 8; } //looking straight left or right
+    
+    //-----------
+    while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
+    {
+        mx = (int)(rayXPos) >> 6; my = (int)(rayYPos) >> 6; mp = my*mapDet.width + mx;  
+
+        if(mp < mapDet.width * mapDet.height && mapDet.map[mp] == 1)
+        { depthOfField = 8;} //hit wall
+        else
+        { rayXPos += xOffset; rayYPos += yOffset; depthOfField += 1; } //next line
+    }
+    //-----------
+    
+    glColor3f(playerImpDet.beamColor3f[0],playerImpDet.beamColor3f[1],playerImpDet.beamColor3f[2]);
+    glLineWidth(playerImpDet.beamThickness);
     glBegin(GL_LINES);
     glVertex2i(playerDet.x, playerDet.y);
-    glVertex2i(rx, ry);
+    glVertex2i(rayXPos, rayYPos);
     glEnd();
 }
 

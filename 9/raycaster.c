@@ -107,7 +107,8 @@ float dist(float ax, float ay, float bx, float by, float ang)
 
 void drawRays2D()
 {
-    int r, mx, my, mp, dof;
+    //int r, 
+    int mx, my, mp, dof;
     float rx, ry, ra, x0, y0, disT;
     ra=pa-DR*30;
     if( ra < 0    ){ ra+= 2*PI; }
