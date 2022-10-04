@@ -180,17 +180,21 @@ void drawRays2D()
     //-----------
     //int r;
     int mx, my, mp, depthOfField;
-    float rayXPos, rayYPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
+    float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
     raysAngle=playerDet.angle;
 
     int mapMaxDepth = max_num(mapDet.width, mapDet.height);
     const float accuracyConst = 0.0001;
     float roundUp = 0;
 
+    if(raysAngle == 0 || raysAngle == PI) //looking directly left or right
+    { raysAngle += accuracyConst; } 
+
+
     //check horizontal lines
     depthOfField = 0;
-    float aTan = -1 / tan(raysAngle); //finding angle???
-
+    float aTan_rayAngle = -1 / tan(raysAngle); //finding angle???
+    printf("aTan_rayAngle: %f \n",aTan_rayAngle);
     //-----------
     //are we looking up or down?
     // looking up is between 0 deg and 180 deg, which in radians, which in this application is between +6.28 and +3.14
@@ -204,27 +208,28 @@ void drawRays2D()
     // e.g.:     69 >> 6 = 1   ---> 1000101 >> 6 = 1 (we just lost all the less significant digits)
     // and then: 1 << 6 =  1000000 ---> 64
 
-    if(raysAngle == 0 || raysAngle == PI) //looking directly left or right
+    if( raysAngle > PI ) //looking up
     { 
-        rayYPos = playerDet.y;
-        rayXPos = playerDet.x;  
-        depthOfField = mapMaxDepth;
-    } 
-    else if( raysAngle > PI ) //looking up
-    { 
+        //printf("inside: looking up\n");
         roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ;
-        rayYPos =  roundUp - accuracyConst;     
-        rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; 
+
+        rayYEndPos =  roundUp - accuracyConst; 
+        rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
         yOffset = -mapDet.tileSizePx; 
-        xOffset = -yOffset*aTan;  
+        xOffset = -yOffset * aTan_rayAngle;  
+
+        printf("rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
     } 
     else if( raysAngle < PI )//looking down
     { 
+        //printf("inside: looking down\n");
         roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound;
-        rayYPos = roundUp + mapDet.tileSizePx; 
-        rayXPos = (playerDet.y - rayYPos) * aTan + playerDet.x; 
+        
+        rayYEndPos = roundUp + mapDet.tileSizePx; //trying to be sure we are projecting at least 1 tile
+        rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
         yOffset =  mapDet.tileSizePx; 
-        xOffset = -yOffset*aTan;  
+        xOffset = -yOffset * aTan_rayAngle;  
+        printf("rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
     } 
     
     
@@ -233,28 +238,28 @@ void drawRays2D()
     while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
     {
         //printf("inside: while(depthOfField < mapMaxDepth)\n");
-        
-        mx = (int)(rayXPos) >> rayDetails.RayPositionRound; 
-        my = (int)(rayYPos) >> rayDetails.RayPositionRound; 
-        mp = my*mapDet.width + mx;  
+
+        mx = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
+        my = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
+        mp = (my * mapDet.width) + mx;  
 
         if(mp < mapDet.width * mapDet.height && mapDet.map[mp] == 1) //hit wall
         { depthOfField = mapMaxDepth;} 
         else
         {   //next line
-            rayXPos += xOffset; 
-            rayYPos += yOffset; 
+            rayXEndPos += xOffset; 
+            rayYEndPos += yOffset; 
             depthOfField += 1; 
         } 
     }
    //printf("after: while(depthOfField < mapMaxDepth)\n");
     //-----------
-    
+    printf("    rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
     glColor3f(playerImpDet.beamColor3f[0],playerImpDet.beamColor3f[1],playerImpDet.beamColor3f[2]);
     glLineWidth(playerImpDet.beamThickness);
     glBegin(GL_LINES);
     glVertex2i(playerDet.x, playerDet.y);
-    glVertex2i(rayXPos, rayYPos);
+    glVertex2i(rayXEndPos, rayYEndPos);
     glEnd();
 }
 
