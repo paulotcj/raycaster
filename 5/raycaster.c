@@ -23,6 +23,10 @@ struct PlayerDetails
     float playerColor3f[3];
 };
 
+struct ControlsDetails{
+    float angleStep;
+};
+
 struct MapDetails
 {
     const int width;
@@ -42,6 +46,8 @@ struct PlayerDetails playerDet = {pointSize : 8, x : 300, y : 300, deltaX : 5, /
                                   deltaMultiplier : 5,
                                   playerColor3f : {1.0f, 0.0f, 1.0f},
                                   directionVectorMultiplier: 5};
+
+struct ControlsDetails controlDet = {angleStep : 0.1f};
 
 struct MapDetails mapDet = {map : {
                                     1,1,1,1,1,1,1,1, //the map array. Edit to change level but keep the outer walls
@@ -65,7 +71,6 @@ struct MapDetails mapDet = {map : {
 
 void drawPlayer()
 {
-
     // player dot
     glColor3f( playerDet.playerColor3f[0], playerDet.playerColor3f[1], playerDet.playerColor3f[2]);
     glPointSize(playerDet.pointSize);
@@ -179,9 +184,9 @@ void display()
 
 void buttons(unsigned char key, int x, int y)
 {
-
-    if (key == 'a'){ playerDet.angle -= 0.1; if(playerDet.angle < 0     ){ playerDet.angle += 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
-    if (key == 'd'){ playerDet.angle += 0.1; if(playerDet.angle > 2 * PI){ playerDet.angle -= 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
+    //note: the circle is 2 * PI, so every time the angle is less than zero or above 2*PI, we have to 'reset' it
+    if (key == 'a'){ playerDet.angle -= controlDet.angleStep; if(playerDet.angle < 0     ){ playerDet.angle += 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
+    if (key == 'd'){ playerDet.angle += controlDet.angleStep; if(playerDet.angle > 2 * PI){ playerDet.angle -= 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
     if (key == 'w'){ playerDet.x += playerDet.deltaX; playerDet.y += playerDet.deltaY; }
     if (key == 's'){ playerDet.x -= playerDet.deltaX; playerDet.y -= playerDet.deltaY; }
 
