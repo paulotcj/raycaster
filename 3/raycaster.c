@@ -30,6 +30,7 @@ int map[]=           //the map array. Edit to change level but keep the outer wa
 
 void drawMap2D() 
 {
+    //the loop below executes mapY * mapX -> 8 * 8 = 64;
     int x,y,x0,y0;
     for(y = 0 ; y < mapY ; y++) //we are looping through a 1D array
     {
@@ -47,6 +48,7 @@ void drawMap2D()
             // idx: 62   - y*mapX: 56 ,    x: 6 
             // idx: 63   - y*mapX: 56 ,    x: 7            
 
+            //  e.g.: 3*8    + 2  -> 24+2 -> 26
             int idx = y*mapX + x;
             //printf("idx: %d   - y*mapX: %d ,    x: %d \n",idx, y*mapX, x);
             if( map[idx] == 1 )
