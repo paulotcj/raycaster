@@ -8,6 +8,8 @@
 #include <GL/glut.h>
 #endif
 
+
+
 struct WindowProperties { 
     int height;
     int width;
@@ -28,9 +30,9 @@ struct MapDetails {
 };
 
 
-struct WindowProperties window = { height : 512, width : 1024, backgroundColor4f : {0.3f,0.3f,0.3f,0} };
-struct PlayerDetails playerDet = {pointSize : 8, px: 300, py: 300, playerColor3f : {1.0f,1.0f,0.0f}};
-struct MapDetails mapDet = {map: {
+struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor4f = {0.3,0.3,0.3,0} };
+struct PlayerDetails playerDet = { .pointSize = 8, .px = 300, .py = 300, .playerColor3f = {1.0f,1.0f,0.0f}};
+struct MapDetails mapDet = { .map = {
                                     1,1,1,1,1,1,1,1, //the map array. Edit to change level but keep the outer walls
                                     1,0,1,0,0,0,0,1,
                                     1,0,1,0,0,0,0,1,
@@ -39,10 +41,12 @@ struct MapDetails mapDet = {map: {
                                     1,0,0,0,0,1,0,1,
                                     1,0,0,0,0,0,0,1,
                                     1,1,1,1,1,1,1,1,	
-                                    } , width : 8, height: 8, tileSizePx : 64};
+                                    } , .width = 8, .height = 8, .tileSizePx = 64};
 
 
 //-----------------------------------------------
+
+
 
 
 
