@@ -11,8 +11,12 @@ struct WindowProperties {
 };
 struct PlayerDetails {
     int pointSize;
-    double x;
-    double y;
+    float x;
+    float y;
+    float angle;
+    float deltaX; //player deltas - this is the intensity to which we are moving on the X/Y axis
+    float deltaY;
+    int deltaMultiplier;
     float playerColor3f[];
 };
 
@@ -25,7 +29,12 @@ struct MapDetails {
 
 
 struct WindowProperties window = { height : 512, width : 1024, backgroundColor4f : {0.3f,0.3f,0.3f,0} };
-struct PlayerDetails playerDet = {pointSize : 8, px: 300, py: 300, playerColor3f : {1.0f,1.0f,0.0f}};
+struct PlayerDetails playerDet = {pointSize : 8, x: 300, y: 300, 
+                                  deltaX: 5, /* cos(0)*5 */
+                                  deltaY: 0, /* sin(0)*5 */ 
+                                  angle:  0, deltaMultiplier: 5,
+                                  playerColor3f : {1.0f,1.0f,0.0f}};
+
 struct MapDetails mapDet = {map: {
                                     1,1,1,1,1,1,1,1, //the map array. Edit to change level but keep the outer walls
                                     1,0,1,0,0,0,0,1,
@@ -37,15 +46,7 @@ struct MapDetails mapDet = {map: {
                                     1,1,1,1,1,1,1,1,	
                                     } , width : 8, height: 8, tileSizePx : 64};
 
-
 //-----------------------------------------------
-
-float pdx, pdy; //player deltas - this is the intensity to which we are moving on the X/Y axis
-float pa; //player angle
-
-
-
-
 
 
 
@@ -53,16 +54,18 @@ void drawPlayer()
 {
     int intensityMulti = 5;
 
+    //player dot
     glColor3f(1,1,0);
     glPointSize(playerDet.pointSize);
     glBegin(GL_POINTS);
     glVertex2i(playerDet.x,playerDet.y);
     glEnd();
 
+    //direction
     glLineWidth(3);
     glBegin(GL_LINES);
-    glVertex2i(playerDet.x                       , playerDet.y                        );
-    glVertex2i(playerDet.x + pdx*intensityMulti  , playerDet.y + pdy*intensityMulti   );
+    glVertex2i(playerDet.x                                   , playerDet.y                                   );
+    glVertex2i(playerDet.x + playerDet.deltaX*intensityMulti , playerDet.y + playerDet.deltaY*intensityMulti );
     glEnd();
 }
 
@@ -145,12 +148,12 @@ void buttons(unsigned char key, int x ,int y)
 
     int multiplayingFactor = 5;
     
-    if(key=='a'){ pa -= 0.1; if( pa < 0    ){ pa += 2*PI; } pdx = cos(pa)*multiplayingFactor; pdy = sin(pa)*multiplayingFactor; }
-    if(key=='d'){ pa += 0.1; if( pa > 2*PI ){ pa -= 2*PI; } pdx = cos(pa)*multiplayingFactor; pdy = sin(pa)*multiplayingFactor; }
-    if(key=='w'){ playerDet.x += pdx; playerDet.y += pdy; }
-    if(key=='s'){ playerDet.x -= pdx; playerDet.y -= pdy; }
+    if(key=='a'){ playerDet.angle -= 0.1; if( playerDet.angle < 0    ){ playerDet.angle += 2*PI; } playerDet.deltaX = cos(playerDet.angle)*multiplayingFactor; playerDet.deltaY = sin(playerDet.angle)*multiplayingFactor; }
+    if(key=='d'){ playerDet.angle += 0.1; if( playerDet.angle > 2*PI ){ playerDet.angle -= 2*PI; } playerDet.deltaX = cos(playerDet.angle)*multiplayingFactor; playerDet.deltaY = sin(playerDet.angle)*multiplayingFactor; }
+    if(key=='w'){ playerDet.x += playerDet.deltaX; playerDet.y += playerDet.deltaY; }
+    if(key=='s'){ playerDet.x -= playerDet.deltaX; playerDet.y -= playerDet.deltaY; }
 
-    printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n",pa, playerDet.x, playerDet.y, pdx, pdy);
+    printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n",playerDet.angle, playerDet.x, playerDet.y, playerDet.deltaX, playerDet.deltaY);
 
     glutPostRedisplay();
 }
@@ -161,7 +164,7 @@ void init()
     glClearColor(window.backgroundColor4f[0],window.backgroundColor4f[1],window.backgroundColor4f[2],window.backgroundColor4f[3]); //red, green, blue, alpha
     gluOrtho2D(0,window.width,window.height,0);
     //px=300; py=300;
-    pdx = cos(pa)*5; pdy = sin(pa)*5;
+    //pdx = cos(pa)*5; pdy = sin(pa)*5;
 }
 
 int main(int argc, char* argv[])
