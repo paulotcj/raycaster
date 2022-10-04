@@ -15,7 +15,7 @@ void drawPlayer()
 }
 
 
-int mapX = 8, mapY = 8, mapS = 64;
+
 int map[]=           //the map array. Edit to change level but keep the outer walls
 {
  1,1,1,1,1,1,1,1,
@@ -28,8 +28,10 @@ int map[]=           //the map array. Edit to change level but keep the outer wa
  1,1,1,1,1,1,1,1,	
 };
 
+
 void drawMap2D() 
 {
+    int mapX = 8, mapY = 8, blockSize = 64;
     //the loop below executes mapY * mapX -> 8 * 8 = 64;
     int x,y,x0,y0;
     for(y = 0 ; y < mapY ; y++) //we are looping through a 1D array
@@ -56,15 +58,20 @@ void drawMap2D()
             else 
             { glColor3f(0,0,0); }
 
-            //printf("x*mapS: %d   - y*mapS: %d\n",x*mapS,y*mapS);
-            x0 = x*mapS;
-            y0 = y*mapS;
+            //printf("x*blockSize: %d   - y*blockSize: %d\n",x*blockSize,y*blockSize);
+            x0 = x*blockSize;
+            y0 = y*blockSize;
 
+            if(x0 == 0 && y0 == 0){glColor3f(0.8,0.8,0.8);}
+
+            const int lineThick = 1;
+
+            printf("x0: %d, y0: %d \n", x0, y0);
             glBegin(GL_QUADS);
-            glVertex2i(x0      +1 , y0         +1);
-            glVertex2i(x0      +1 , y0 + mapS  -1);
-            glVertex2i(x0+mapS -1 , y0 + mapS  -1);
-            glVertex2i(x0+mapS -1 , y0         +1);
+            glVertex2i(x0                          , y0                          );
+            glVertex2i(x0                          , y0 + (blockSize -lineThick) );
+            glVertex2i(x0+ (blockSize -lineThick)  , y0 + (blockSize -lineThick) );
+            glVertex2i(x0+ (blockSize -lineThick)  , y0                          );
             glEnd();
 
             // X      , Y
