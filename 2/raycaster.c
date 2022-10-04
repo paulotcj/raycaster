@@ -8,6 +8,8 @@
 #include <GL/glut.h>
 #endif
 
+
+
 struct WindowProperties { 
     int height;
     int width;
@@ -21,8 +23,8 @@ struct PlayerDetails {
 };
 
 
-struct WindowProperties window = { height : 512, width : 1024, backgroundColor4f : {0.3f,0.3f,0.3f,0} };
-struct PlayerDetails playerDet = {pointSize : 8, px: 300, py: 300, playerColor3f : {1.0f,1.0f,0.0f}};
+struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor4f = {0.3,0.3,0.3,0} };
+struct PlayerDetails playerDet = { .pointSize = 8, .px = 300, .py = 300, .playerColor3f = {1.0f,1.0f,0.0f}};
 //-----------------------------------------------
 
 

@@ -13,10 +13,18 @@
 struct WindowProperties { 
     int height;
     int width;
-    float backgroundColor[]; //red, green, blue, alpha
+    float backgroundColor4f[]; //red, green, blue, alpha
 };
-struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor = {0.3,0.3,0.3,0} };
+
+
+struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor4f = {0.3,0.3,0.3,0} };
 //-----------------------------------------------
+
+
+
+
+
+
 
 
 void display()
@@ -26,19 +34,20 @@ void display()
 }
 
 
+
 void init()
 {
-    glClearColor(window.backgroundColor[0],window.backgroundColor[1],window.backgroundColor[2],window.backgroundColor[3]); //red, green, blue, alpha
+    glClearColor(window.backgroundColor4f[0],window.backgroundColor4f[1],window.backgroundColor4f[2],window.backgroundColor4f[3]); //red, green, blue, alpha
     gluOrtho2D(0,window.width,window.height,0);
 }
 
 int main(int argc, char* argv[])
 {
-    printf("environment validation\n");
+    printf("environment and application: OK\n");
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
     glutInitWindowSize(window.width, window.height);
-    glutCreateWindow("test glut");
+    glutCreateWindow("Raycaster");
     init();
     glutDisplayFunc(display);
     glutMainLoop();
