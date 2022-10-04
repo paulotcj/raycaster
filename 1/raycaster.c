@@ -20,8 +20,7 @@ void display()
 
 void init()
 {
-    //glClearColor(0.3,0.3,0.3,0);
-    glClearColor(window.backgroundColor[0],window.backgroundColor[1],window.backgroundColor[2],window.backgroundColor[3]);
+    glClearColor(window.backgroundColor[0],window.backgroundColor[1],window.backgroundColor[2],window.backgroundColor[3]); //red, green, blue, alpha
     gluOrtho2D(0,window.width,window.height,0);
 }
 
