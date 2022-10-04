@@ -6,9 +6,9 @@
 
 struct WindowProperties
 {
-    int height;
-    int width;
-    float backgroundColor4f[]; // red, green, blue, alpha
+    const int height;
+    const int width;
+    const float backgroundColor4f[]; // red, green, blue, alpha
 };
 struct PlayerDetails
 {
@@ -19,19 +19,20 @@ struct PlayerDetails
     float deltaX; // player deltas - this is the intensity to which we are moving on the X/Y axis
     float deltaY;
     int deltaMultiplier;
+    int directionVectorMultiplier;
     float playerColor3f[3];
 };
 
 struct MapDetails
 {
-    int width;
-    int height;
+    const int width;
+    const int height;
     int tileSizePx;
     int lineThickness;
     float tileFloorColor3f[3];
     float tileWallColor3f[3];
     float firstTileColor3f[3];
-    int map[];
+    const int map[];
 };
 
 struct WindowProperties window = {height : 512, width : 1024, backgroundColor4f : {0.3f, 0.3f, 0.3f, 0}};
@@ -39,7 +40,8 @@ struct PlayerDetails playerDet = {pointSize : 8, x : 300, y : 300, deltaX : 5, /
                                   deltaY : 0,                                  /* sin(0)*5 */
                                   angle : 0,
                                   deltaMultiplier : 5,
-                                  playerColor3f : {1.0f, 1.0f, 0.0f}};
+                                  playerColor3f : {1.0f, 0.0f, 1.0f},
+                                  directionVectorMultiplier: 5};
 
 struct MapDetails mapDet = {map : {
                                     1,1,1,1,1,1,1,1, //the map array. Edit to change level but keep the outer walls
@@ -63,20 +65,22 @@ struct MapDetails mapDet = {map : {
 
 void drawPlayer()
 {
-    int intensityMulti = 5;
+    //int intensityMulti = 5;
 
     // player dot
-    glColor3f(1, 1, 0);
+    glColor3f( playerDet.playerColor3f[0], playerDet.playerColor3f[1], playerDet.playerColor3f[2]);
     glPointSize(playerDet.pointSize);
     glBegin(GL_POINTS);
     glVertex2i(playerDet.x, playerDet.y);
     glEnd();
 
     // direction
+    int x1 = playerDet.x + playerDet.deltaX * playerDet.directionVectorMultiplier;
+    int y1 = playerDet.y + playerDet.deltaY * playerDet.directionVectorMultiplier;
     glLineWidth(3);
     glBegin(GL_LINES);
     glVertex2i(playerDet.x, playerDet.y);
-    glVertex2i(playerDet.x + playerDet.deltaX * intensityMulti, playerDet.y + playerDet.deltaY * intensityMulti);
+    glVertex2i(x1, y1);
     glEnd();
 }
 
