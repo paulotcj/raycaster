@@ -65,8 +65,6 @@ struct MapDetails mapDet = {map : {
 
 void drawPlayer()
 {
-    //int intensityMulti = 5;
-
     // player dot
     glColor3f( playerDet.playerColor3f[0], playerDet.playerColor3f[1], playerDet.playerColor3f[2]);
     glPointSize(playerDet.pointSize);
