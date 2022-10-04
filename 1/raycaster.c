@@ -1,13 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef __APPLE__
+/* Defined before OpenGL and GLUT includes to avoid deprecation messages */
+#define GL_SILENCE_DEPRECATION
+#include <GLUT/glut.h>
+#else
 #include <GL/glut.h>
+#endif
+
+
 
 struct WindowProperties { 
     int height;
     int width;
     float backgroundColor[]; //red, green, blue, alpha
 };
-struct WindowProperties window = { height : 512, width : 1024, backgroundColor : {0.3,0.3,0.3,0} };
+struct WindowProperties window = { .height = 512, .width = 1024, .backgroundColor = {0.3,0.3,0.3,0} };
 //-----------------------------------------------
 
 
@@ -40,4 +48,9 @@ int main(int argc, char* argv[])
 
 //install glut: sudo apt-get install freeglut3-dev
 //compile on linux
-//use: gcc raycaster.c -lGL -lGLU -lglut -lm
+// use: gcc raycaster.c -lGL -lGLU -lglut -lm
+//      ./a.out
+//compile on linux
+
+// use: gcc raycaster.c -framework OpenGL -framework GLUT
+//      ./a.out
