@@ -175,15 +175,19 @@ void drawMap2D()
         }
     }
 }
-void drawRays2D()
+
+int* Calculate2DRays()
 {
+    static int response[4];
+
     //-----------
     //int r;
-    int mx, my, mp, depthOfField;
+ 
+    
     float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
     raysAngle=playerDet.angle;
 
-    int mapMaxDepth = max_num(mapDet.width, mapDet.height);
+    
     const float accuracyConst = 0.0001;
     float roundUp = 0;
 
@@ -192,9 +196,10 @@ void drawRays2D()
 
 
     //check horizontal lines
-    depthOfField = 0;
     float aTan_rayAngle = -1 / tan(raysAngle); //finding angle???
-    printf("aTan_rayAngle: %f \n",aTan_rayAngle);
+    //printf("aTan_rayAngle: %f - atan(raysAngle): %f  - atan(raysAngle) * 180 / PI: %f \n",aTan_rayAngle, atan(raysAngle) , atan(raysAngle) * 180 / PI);
+
+
     //-----------
     //are we looking up or down?
     // looking up is between 0 deg and 180 deg, which in radians, which in this application is between +6.28 and +3.14
@@ -203,7 +208,7 @@ void drawRays2D()
     //printf("raysAngle: %f - PI: %f\n",raysAngle, PI);
 
     //we also need to round the ray position to the nearest 64 value (blocksize)
-    // it's done by bit shiftting right by 6, which is (num >> 6) and then bit shiftting left by 6 (num << 6)
+    // it's done by bit shifting right by 6, which is (num >> 6) and then bit shifting left by 6 (num << 6)
     // the 6 in this case is equivalent dividing by 64
     // e.g.:     69 >> 6 = 1   ---> 1000101 >> 6 = 1 (we just lost all the less significant digits)
     // and then: 1 << 6 =  1000000 ---> 64
@@ -218,7 +223,7 @@ void drawRays2D()
         yOffset = -mapDet.tileSizePx; 
         xOffset = -yOffset * aTan_rayAngle;  
 
-        printf("rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
+        //printf("rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
     } 
     else if( raysAngle < PI )//looking down
     { 
@@ -229,9 +234,34 @@ void drawRays2D()
         rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
         yOffset =  mapDet.tileSizePx; 
         xOffset = -yOffset * aTan_rayAngle;  
-        printf("rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
+        //printf("rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
     } 
+
+    //-----------
+
+    response[0] = rayXEndPos;
+    response[1] = rayYEndPos;
+    response[2] = xOffset;
+    response[3] = yOffset;
+
+
+    return response;
     
+}
+
+int* Calculate2DRayCollision()
+{
+    static int response[4];
+
+
+    //-----------
+    int *arr = Calculate2DRays();
+
+    float rayXEndPos = arr[0], rayYEndPos =  arr[1], xOffset = arr[2], yOffset = arr[3];
+
+    //-----------
+    int mx, my, mp, depthOfField =0;
+    int mapMaxDepth = max_num(mapDet.width, mapDet.height);
     
     //-----------
     //printf("before: while(depthOfField < mapMaxDepth)\n");
@@ -254,7 +284,23 @@ void drawRays2D()
     }
    //printf("after: while(depthOfField < mapMaxDepth)\n");
     //-----------
-    printf("    rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
+
+    response[0] = rayXEndPos;
+    response[1] = rayYEndPos;
+    response[2] = xOffset;
+    response[3] = yOffset;
+
+
+    return response;
+}
+
+void drawRays2D()
+{   
+    int *arr = Calculate2DRayCollision();
+    float rayXEndPos = arr[0], rayYEndPos =  arr[1], xOffset = arr[2], yOffset = arr[3];
+
+    //-----------
+    //printf("    rayYEndPos: %f - playerDet.y: %f     - rayXEndPos: %f - playerDet.x: %f  \n", rayYEndPos, playerDet.y, rayXEndPos, playerDet.x);    
     glColor3f(playerImpDet.beamColor3f[0],playerImpDet.beamColor3f[1],playerImpDet.beamColor3f[2]);
     glLineWidth(playerImpDet.beamThickness);
     glBegin(GL_LINES);
@@ -275,10 +321,32 @@ void display()
 void buttons(unsigned char key, int x ,int y)
 {
     //note: the circle is 2 * PI, so every time the angle is less than zero or above 2*PI, we have to 'reset' it
-    if (key == 'a'){ playerDet.angle -= controlDet.angleStep; if(playerDet.angle < 0     ){ playerDet.angle += 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
-    if (key == 'd'){ playerDet.angle += controlDet.angleStep; if(playerDet.angle > 2 * PI){ playerDet.angle -= 2 * PI; } playerDet.deltaX = cos(playerDet.angle) * playerDet.deltaMultiplier; playerDet.deltaY = sin(playerDet.angle) * playerDet.deltaMultiplier; }
-    if (key == 'w'){ playerDet.x += playerDet.deltaX; playerDet.y += playerDet.deltaY; }
-    if (key == 's'){ playerDet.x -= playerDet.deltaX; playerDet.y -= playerDet.deltaY; }
+    if (key == 'a')
+    { 
+        playerDet.angle -= controlDet.angleStep;  
+        if(playerDet.angle < 0 ) { playerDet.angle += 2 * PI; } //circle = 2*PI*Rad
+        
+        playerDet.deltaX = cos(playerDet.angle); //* playerDet.deltaMultiplier; 
+        playerDet.deltaY = sin(playerDet.angle); //* playerDet.deltaMultiplier; 
+    }
+    if (key == 'd')
+    { 
+        playerDet.angle += controlDet.angleStep; 
+        if(playerDet.angle > 2 * PI){ playerDet.angle -= 2 * PI; } 
+        
+        playerDet.deltaX = cos(playerDet.angle); //* playerDet.deltaMultiplier; 
+        playerDet.deltaY = sin(playerDet.angle); //* playerDet.deltaMultiplier; 
+    }
+    if (key == 'w') //simple
+    { 
+        playerDet.x += playerDet.deltaX; 
+        playerDet.y += playerDet.deltaY; 
+    }
+    if (key == 's') //simple
+    { 
+        playerDet.x -= playerDet.deltaX; 
+        playerDet.y -= playerDet.deltaY; 
+    }
 
     //printf("pa: %f - px: %f - py: %f - pdx: %f - pdy: %f \n", playerDet.angle, playerDet.x, playerDet.y, playerDet.deltaX, playerDet.deltaY);
 
@@ -292,8 +360,8 @@ void init()
     gluOrtho2D(0,window.width,window.height,0);
     //px=300; py=300;
     // pdx = cos(pa)*5; pdy = sin(pa)*5;
-    rayDetails.RayPositionRound = (int)(ceil(log(mapDet.tileSizePx) / log(2)));
-    printf("rayDetails.RayPositionRound: %d\n", rayDetails.RayPositionRound);
+    rayDetails.RayPositionRound = (int)(ceil(log(mapDet.tileSizePx) / log(2))); //log2(num) = x -> this will be used for bit shifting
+
 }
 
 int main(int argc, char* argv[])
