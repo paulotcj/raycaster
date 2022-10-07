@@ -195,7 +195,7 @@ void drawRays2D()
 
     //check horizontal lines
     float aTan_rayAngle = -1 / tan(raysAngle); //finding angle???
-    printf("raysAngle: %f , tan(raysAngle): %f, -1 / tan(raysAngle): %f\n", raysAngle, tan(raysAngle), (-1 / tan(raysAngle)));
+    //printf("raysAngle: %f , tan(raysAngle): %f, -1 / tan(raysAngle): %f\n", raysAngle, tan(raysAngle), (-1 / tan(raysAngle)));
 
 
     //-----------
@@ -213,10 +213,10 @@ void drawRays2D()
     if( raysAngle > PI ) //looking up
     { 
 
-        roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ;
+        roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound; //round to the next tile multiplier position
 
-        rayYEndPos =  roundUp - accuracyConst; 
-        rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
+        rayYEndPos = roundUp - accuracyConst; 
+        rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; // (dist) * -1/tan + x
         yOffset = -mapDet.tileSizePx; 
         xOffset = -yOffset * aTan_rayAngle;  
     } 
@@ -228,30 +228,44 @@ void drawRays2D()
         rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
         yOffset =  mapDet.tileSizePx; 
         xOffset = -yOffset * aTan_rayAngle;  
+
+
     } 
+    //printf("p.y: %f, rayYEndPos: %f, (p.y - rayYEndPos):, %f , p.x: %f \n", playerDet.y, rayYEndPos, (playerDet.y - rayYEndPos), playerDet.x);
+    //printf("  rayXEndPos: %f  - (playerDet.y - rayYEndPos) * aTan_rayAngle: %f\n", rayXEndPos, ((playerDet.y - rayYEndPos) * aTan_rayAngle));
+
+    //printf("-- p.x: %f, p.y: %f, rayXEndPos: %f, rayYEndPos: %f\n", playerDet.x, playerDet.y, rayXEndPos, rayYEndPos);
        
+
+    //the rayYEndPos and rayXEndPos where given a somewhat arbitrary lengthy value, we are just trying to point it in the same direction as the player
+    // the goal now is to use this way and its direction, figure out, if we will hit a wall.
 
     int mx, my, mp = 0 , depthOfField = 0;
     int mapMaxDepth = max_num(mapDet.width, mapDet.height);
     
+    printf("--------------------------------------\n");
     while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
     {
-        printf("--------------------------------------\n");
+        
 
-        printf("test: rayXEndPos: %d\n", rayXEndPos);
+        //printf("rayXEndPos: %d\n", rayXEndPos);
         mx = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
         my = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
         mp = (my * mapDet.width) + mx;  
 
         if(mp > mapDet.mapCount) { mp = 0; } //bug fix
 
-        printf("test: my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
-        printf("test: mapDet.width * mapDet.height: %f\n", mapDet.width * mapDet.height);
-        printf("test: mp: %d\n", mp);
-        printf("test: mapDet.map[mp]: %d\n", mapDet.map[mp]);
+         printf("my: %d , mx: %d , mp: %d\n", my, mx, mp);
+        // printf("my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
+        // printf("my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
+        // printf("mapDet.width * mapDet.height: %f\n", mapDet.width * mapDet.height);
+        // printf("mp: %d\n", mp);
+        // printf("mapDet.map[mp]: %d\n", mapDet.map[mp]);
 
-        if(mp < mapDet.width * mapDet.height && mapDet.map[mp] == 1) //hit wall
-        { depthOfField = mapMaxDepth; printf("mapDet.map[mp] == 1 \n");} 
+        if(mp < mapDet.mapCount && mapDet.map[mp] == 1) //hit wall
+        { 
+            depthOfField = mapMaxDepth; //printf("mapDet.map[mp] == 1 \n");
+        } 
         else
         {   //next line
             rayXEndPos += xOffset; 
