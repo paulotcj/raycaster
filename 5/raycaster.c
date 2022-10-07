@@ -50,6 +50,7 @@ struct MapDetails
     int tileSizePx;
     int lineThickness;
     const int mapCount;
+    const int wall;
     float tileFloorColor3f[3];
     float tileWallColor3f[3];
     float firstTileColor3f[3];
@@ -90,6 +91,7 @@ struct MapDetails mapDet = { .map = {
                             .height = 8,
                             .mapCount = 8*8, //width * height
                             .tileSizePx = 64,
+                            .wall = 1,
                             .tileFloorColor3f = {0.0f, 0.0f, 0.0f},
                             .tileWallColor3f = {1.0f, 1.0f, 1.0f},
                             .firstTileColor3f = {0.8f, 0.8f, 0.8f},
@@ -263,7 +265,7 @@ void drawRays2D()
         // printf("mapDet.map[mp]: %d\n", mapDet.map[mp]);
 
         //trying to find vertical hits
-        if(tileInspecting < mapDet.mapCount && mapDet.map[tileInspecting] == 1) //hit wall
+        if(tileInspecting < mapDet.mapCount && mapDet.map[tileInspecting] == mapDet.wall) //hit wall
         { 
             depthOfField = mapMaxDepth; printf("WALL - tileIns: %d\n", tileInspecting);
         } 
