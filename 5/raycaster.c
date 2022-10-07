@@ -212,12 +212,12 @@ void drawRays2D()
 
     if( raysAngle > PI ) //looking up
     { 
-
         roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound; //round to the next tile multiplier position
 
         rayYEndPos = roundUp - accuracyConst; 
         rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; // (dist) * -1/tan + x
-        yOffset = -mapDet.tileSizePx; 
+        //the movement is focused on Y axis, so it always receive 'full values' while X gets proportionally.
+        yOffset = -mapDet.tileSizePx; //looking up, therefore we reduce Y, since the map has origin (0,0)
         xOffset = -yOffset * aTan_rayAngle;  
     } 
     else if( raysAngle < PI )//looking down
@@ -226,7 +226,7 @@ void drawRays2D()
         
         rayYEndPos = roundUp + mapDet.tileSizePx; //trying to be sure we are projecting at least 1 tile
         rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
-        yOffset =  mapDet.tileSizePx; 
+        yOffset = mapDet.tileSizePx; 
         xOffset = -yOffset * aTan_rayAngle;  
 
 
@@ -240,7 +240,7 @@ void drawRays2D()
     //the rayYEndPos and rayXEndPos where given a somewhat arbitrary lengthy value, we are just trying to point it in the same direction as the player
     // the goal now is to use this way and its direction, figure out, if we will hit a wall.
 
-    int mx, my, mp = 0 , depthOfField = 0;
+    int mapX, mapY, tileInspecting = 0 , depthOfField = 0;
     int mapMaxDepth = max_num(mapDet.width, mapDet.height);
     
     printf("--------------------------------------\n");
@@ -249,22 +249,23 @@ void drawRays2D()
         
 
         //printf("rayXEndPos: %d\n", rayXEndPos);
-        mx = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
-        my = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
-        mp = (my * mapDet.width) + mx;  
+        mapX = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
+        mapY = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
+        tileInspecting = (mapY * mapDet.width) + mapX;  
 
-        if(mp > mapDet.mapCount) { mp = 0; } //bug fix
+        if(tileInspecting > mapDet.mapCount) { tileInspecting = 0; } //bug fix
 
-         printf("my: %d , mx: %d , mp: %d\n", my, mx, mp);
+         printf("my: %d , mx: %d , tileIns: %d, yOffset: %f , xOffset: %f\n", mapY, mapX, tileInspecting , yOffset, xOffset);
         // printf("my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
         // printf("my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
         // printf("mapDet.width * mapDet.height: %f\n", mapDet.width * mapDet.height);
         // printf("mp: %d\n", mp);
         // printf("mapDet.map[mp]: %d\n", mapDet.map[mp]);
 
-        if(mp < mapDet.mapCount && mapDet.map[mp] == 1) //hit wall
+        //trying to find vertical hits
+        if(tileInspecting < mapDet.mapCount && mapDet.map[tileInspecting] == 1) //hit wall
         { 
-            depthOfField = mapMaxDepth; //printf("mapDet.map[mp] == 1 \n");
+            depthOfField = mapMaxDepth; printf("WALL - tileIns: %d\n", tileInspecting);
         } 
         else
         {   //next line
