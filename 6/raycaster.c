@@ -37,7 +37,8 @@ struct PlayerImplementationDetails
     int directionVectorMultiplier;
     int beamThicknessHorizontal;
     int beamThicknessVertical;
-    float beamColor3f[3];
+    float beamColorHorizontal3f[3];
+    float beamColorVertical3f[3];
     float playerColor3f[3];
 };
 
@@ -75,7 +76,8 @@ struct PlayerDetails playerDet = { .pointSize = 8, .x = 300, .y = 300, .deltaX =
 struct PlayerImplementationDetails playerImpDet = 
 {
     .directionVectorMultiplier = 5, .beamThicknessHorizontal = 6, .beamThicknessVertical = 3,
-    .beamColor3f = {0.0f,1.0f,0.0f}, .playerColor3f = {1.0f, 0.0f, 1.0f}
+    .beamColorHorizontal3f = {0.0f,1.0f,0.0f}, .beamColorVertical3f = {1.0f,0.0f,0.0f}, 
+    .playerColor3f = {1.0f, 0.0f, 1.0f}
 };
 
 struct ControlsDetails controlDet = { .angleStep = 0.1f};
@@ -197,6 +199,9 @@ void drawRays2D()
     if(raysAngle == 0 || raysAngle == PI) //looking directly left or right
     { raysAngle += accuracyConst; }  
 
+    int mapX, mapY, tileInspecting = 0 , depthOfField = 0;
+    int mapMaxDepth = max_num(mapDet.width, mapDet.height);    
+
     for(ray = 0 ; ray < 1 ; ray++ )
     {
     
@@ -235,8 +240,12 @@ void drawRays2D()
             rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
             yOffset = mapDet.tileSizePx; 
             xOffset = -yOffset * aTan_rayAngle;  
-
-
+        } 
+        if( raysAngle == 0 || raysAngle == PI ) //looking directly left or right
+        { 
+            rayXEndPos = playerDet.x; 
+            rayYEndPos = playerDet.y; 
+            depthOfField = mapMaxDepth; 
         } 
         //printf("p.y: %f, rayYEndPos: %f, (p.y - rayYEndPos):, %f , p.x: %f \n", playerDet.y, rayYEndPos, (playerDet.y - rayYEndPos), playerDet.x);
         //printf("  rayXEndPos: %f  - (playerDet.y - rayYEndPos) * aTan_rayAngle: %f\n", rayXEndPos, ((playerDet.y - rayYEndPos) * aTan_rayAngle));
@@ -247,8 +256,7 @@ void drawRays2D()
         //the rayYEndPos and rayXEndPos where given a somewhat arbitrary lengthy value, we are just trying to point it in the same direction as the player
         // the goal now is to use this way and its direction, figure out, if we will hit a wall.
 
-        int mapX, mapY, tileInspecting = 0 , depthOfField = 0;
-        int mapMaxDepth = max_num(mapDet.width, mapDet.height);
+
     
         printf("--------------------------------------\n");
         while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
@@ -282,11 +290,9 @@ void drawRays2D()
             } 
 
         }
-
-
-        //-----------------------------
-
-        glColor3f(playerImpDet.beamColor3f[0],playerImpDet.beamColor3f[1],playerImpDet.beamColor3f[2]);
+        //--------
+        glColor3f(playerImpDet.beamColorHorizontal3f[0],playerImpDet.beamColorHorizontal3f[1],
+            playerImpDet.beamColorHorizontal3f[2]);
         glLineWidth(playerImpDet.beamThicknessHorizontal);
         glBegin(GL_LINES);
         glVertex2i(playerDet.x, playerDet.y);
@@ -294,39 +300,40 @@ void drawRays2D()
         glEnd();
 
 
+        //-----------------------------
         //check vertical lines
         depthOfField = 0;
         float nTan_rayAngle = -tan(raysAngle); //negative tangent
         // num >> 6 = divide by 64    and   num << 6 = multiply by 64
         if( raysAngle > P2 && raysAngle <  P3 )
         { 
-            rayXEndPos = ( ((int)playerDet.x >> 6) << 6 ) - 0.0001; 
+            rayXEndPos = ( ((int)playerDet.x >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) - accuracyConst; 
             rayYEndPos = (playerDet.x - rayXEndPos) * nTan_rayAngle + playerDet.y; 
-            xOffset = -64; 
+            xOffset = -mapDet.tileSizePx; 
             yOffset = -xOffset*nTan_rayAngle;  
         } //looking left
         if( raysAngle < P2 || raysAngle >  P3 )
         { 
-            rayXEndPos = ( ((int)playerDet.x >> 6) << 6 ) + 64;     
+            rayXEndPos = ( ((int)playerDet.x >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) + mapDet.tileSizePx;     
             rayYEndPos = (playerDet.x - rayXEndPos) * nTan_rayAngle + playerDet.y; 
-            xOffset =  64; 
+            xOffset =  mapDet.tileSizePx; 
             yOffset = -xOffset*nTan_rayAngle;  
         } //looking right
         if( raysAngle == 0 || raysAngle == PI )
         { 
             rayXEndPos = playerDet.x; 
             rayYEndPos = playerDet.y; 
-            depthOfField = 8; 
+            depthOfField = mapMaxDepth; 
         } //looking straight up or down
         
-        while(depthOfField < 8) //this is max depth of the map - we do not need to check further if that's the case
+        while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
         {
-            mapX = (int)(rayXEndPos) >> 6; 
-            mapY = (int)(rayYEndPos) >> 6; 
+            mapX = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
+            mapY = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
             tileInspecting = mapY*mapX + mapX;  
 
             if(tileInspecting > 0 && tileInspecting < mapX * mapY && mapDet.map[tileInspecting] == mapDet.wall)
-            { depthOfField = 8;} //hit wall
+            { depthOfField = mapMaxDepth;} //hit wall
             else
             { 
                 rayXEndPos += xOffset; 
@@ -335,7 +342,8 @@ void drawRays2D()
             } //next line
         }
 
-        glColor3f(1,0,0);
+        glColor3f(playerImpDet.beamColorVertical3f[0],playerImpDet.beamColorVertical3f[1],
+            playerImpDet.beamColorVertical3f[2]);
         glLineWidth(playerImpDet.beamThicknessVertical);
         glBegin(GL_LINES);
         glVertex2i(playerDet.x, playerDet.y);
