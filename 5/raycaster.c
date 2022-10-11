@@ -180,25 +180,18 @@ void drawMap2D()
     }
 }
 
-
 void drawRays2D()
-{   
-
-    //int r;
-    float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
+{
+    int r, mx, my, tileInspecting, depthOfField;
+    float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset;
     raysAngle=playerDet.angle;
-
-    const float accuracyConst = 0.0001;
-    float roundUp = 0;
-
-    if(raysAngle == 0 || raysAngle == PI) //looking directly left or right
-    { raysAngle += accuracyConst; }  
-
+	
+	const float accuracyConst = 0.0001;
+	int mapMaxDepth = max_num(mapDet.width, mapDet.height);
 
     //check horizontal lines
-    float aTan_rayAngle = -1 / tan(raysAngle); //finding angle???
-    //printf("raysAngle: %f , tan(raysAngle): %f, -1 / tan(raysAngle): %f\n", raysAngle, tan(raysAngle), (-1 / tan(raysAngle)));
-
+    depthOfField = 0;
+    float aTan_rayAngle = -1 / tan(raysAngle);
 
     //-----------
     //are we looking up or down?
@@ -211,75 +204,18 @@ void drawRays2D()
     // the 6 in this case is equivalent dividing by 64
     // e.g.:     69 >> 6 = 1   ---> 1000101 >> 6 = 1 (we just lost all the less significant digits)
     // and then: 1 << 6 =  1000000 ---> 64
-
-    if( raysAngle > PI ) //looking up
-    { 
-        roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound; //round to the next tile multiplier position
-
-        rayYEndPos = roundUp - accuracyConst; 
-        rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; // (dist) * -1/tan + x
-        //the movement is focused on Y axis, so it always receive 'full values' while X gets proportionally.
-        yOffset = -mapDet.tileSizePx; //looking up, therefore we reduce Y, since the map has origin (0,0)
-        xOffset = -yOffset * aTan_rayAngle;  
-    } 
-    else if( raysAngle < PI )//looking down
-    { 
-        roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound;
-        
-        rayYEndPos = roundUp + mapDet.tileSizePx; //trying to be sure we are projecting at least 1 tile
-        rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
-        yOffset = mapDet.tileSizePx; 
-        xOffset = -yOffset * aTan_rayAngle;  
-
-
-    } 
-    //printf("p.y: %f, rayYEndPos: %f, (p.y - rayYEndPos):, %f , p.x: %f \n", playerDet.y, rayYEndPos, (playerDet.y - rayYEndPos), playerDet.x);
-    //printf("  rayXEndPos: %f  - (playerDet.y - rayYEndPos) * aTan_rayAngle: %f\n", rayXEndPos, ((playerDet.y - rayYEndPos) * aTan_rayAngle));
-
-    //printf("-- p.x: %f, p.y: %f, rayXEndPos: %f, rayYEndPos: %f\n", playerDet.x, playerDet.y, rayXEndPos, rayYEndPos);
-       
-
-    //the rayYEndPos and rayXEndPos where given a somewhat arbitrary lengthy value, we are just trying to point it in the same direction as the player
-    // the goal now is to use this way and its direction, figure out, if we will hit a wall.
-
-    int mapX, mapY, tileInspecting = 0 , depthOfField = 0;
-    int mapMaxDepth = max_num(mapDet.width, mapDet.height);
+    // num >> 6 = divide by 64    and   num << 6 = multiply by 64
+    if(raysAngle > PI){ rayYEndPos = ( ((int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) - accuracyConst; rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; yOffset = -mapDet.tileSizePx; xOffset = -yOffset*aTan_rayAngle;  } //looking up
+    if(raysAngle < PI){ rayYEndPos = ( ((int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) + mapDet.tileSizePx;     rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; yOffset =  mapDet.tileSizePx; xOffset = -yOffset*aTan_rayAngle;  } //looking down
+    if(raysAngle == 0 || raysAngle == PI){ rayXEndPos = playerDet.x; rayYEndPos = playerDet.y; depthOfField = mapMaxDepth; } //looking straight left or right
     
-    printf("--------------------------------------\n");
+	
     while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
     {
-        
-
-        //printf("rayXEndPos: %d\n", rayXEndPos);
-        mapX = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
-        mapY = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
-        tileInspecting = (mapY * mapDet.width) + mapX;  
-
-        if(tileInspecting > mapDet.mapCount) { tileInspecting = 0; } //bug fix
-
-         printf("my: %d , mx: %d , tileIns: %d, yOffset: %f , xOffset: %f\n", mapY, mapX, tileInspecting , yOffset, xOffset);
-        // printf("my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
-        // printf("my: %d , mx: %d , mapDet.width: %d\n", my, mx, mapDet.width);
-        // printf("mapDet.width * mapDet.height: %f\n", mapDet.width * mapDet.height);
-        // printf("mp: %d\n", mp);
-        // printf("mapDet.map[mp]: %d\n", mapDet.map[mp]);
-
-        //trying to find vertical hits
-        if(tileInspecting < mapDet.mapCount && mapDet.map[tileInspecting] == mapDet.wall) //hit wall
-        { 
-            depthOfField = mapMaxDepth; printf("WALL - tileIns: %d\n", tileInspecting);
-        } 
-        else
-        {   //next line
-            rayXEndPos += xOffset; 
-            rayYEndPos += yOffset; 
-            depthOfField += 1; 
-        } 
-
+        mx = (int)(rayXEndPos) >> rayDetails.RayPositionRound; my = (int)(rayYEndPos) >> rayDetails.RayPositionRound; tileInspecting = my*mapDet.width + mx;  
+        if(tileInspecting < mapDet.width * mapDet.height && mapDet.map[tileInspecting] == 1){ depthOfField = mapMaxDepth;} //hit wall
+        else{ rayXEndPos += xOffset; rayYEndPos += yOffset; depthOfField += 1; } //next line
     }
-
-
-    //-----------------------------
 
     glColor3f(playerImpDet.beamColor3f[0],playerImpDet.beamColor3f[1],playerImpDet.beamColor3f[2]);
     glLineWidth(playerImpDet.beamThickness);
@@ -288,6 +224,8 @@ void drawRays2D()
     glVertex2i(rayXEndPos, rayYEndPos);
     glEnd();
 }
+
+
 
 void display()
 {
