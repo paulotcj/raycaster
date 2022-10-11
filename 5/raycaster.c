@@ -182,17 +182,15 @@ void drawMap2D()
 
 void drawRays2D()
 {
-    int r, mx, my, tileInspecting, depthOfField;
+    int r, mapX, mapY, tileInspecting, depthOfField;
     float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset;
     raysAngle=playerDet.angle;
 	
 	const float accuracyConst = 0.0001;
 	int mapMaxDepth = max_num(mapDet.width, mapDet.height);
 
-    //check horizontal lines
     depthOfField = 0;
     float aTan_rayAngle = -1 / tan(raysAngle);
-
     //-----------
     //are we looking up or down?
     // looking up is between 0 deg and 180 deg, which in radians, which in this application is between +6.28 and +3.14
@@ -212,7 +210,7 @@ void drawRays2D()
 	
     while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
     {
-        mx = (int)(rayXEndPos) >> rayDetails.RayPositionRound; my = (int)(rayYEndPos) >> rayDetails.RayPositionRound; tileInspecting = my*mapDet.width + mx;  
+        mapX = (int)(rayXEndPos) >> rayDetails.RayPositionRound; mapY = (int)(rayYEndPos) >> rayDetails.RayPositionRound; tileInspecting = mapY*mapDet.width + mapX;  
         if(tileInspecting < mapDet.width * mapDet.height && mapDet.map[tileInspecting] == 1){ depthOfField = mapMaxDepth;} //hit wall
         else{ rayXEndPos += xOffset; rayYEndPos += yOffset; depthOfField += 1; } //next line
     }
