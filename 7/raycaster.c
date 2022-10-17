@@ -11,7 +11,7 @@
 #define PI 3.141592653589793238
 #define P2 PI/2
 #define P3 3*PI/2
-#define DR 0.0174533
+#define DR 0.0174533 //one degree in radians
 #define max_num(x,y) (((x) >= (y)) ? (x) : (y))
 
 struct WindowProperties
@@ -186,9 +186,9 @@ void drawMap2D()
     }
 }
 
-float dist(float ax, float ay, float bx, float by, float ang)
+float dist(float pointA_X, float pointA_Y, float pointB_X, float pointB_Y, float ang)
 {
-    return ( sqrt( (bx-ax) * (bx-ax) + (by-ay) * (by-ay) )  );
+    return ( sqrt( (pointB_X-pointA_X) * (pointB_X-pointA_X) + (pointB_Y-pointA_Y) * (pointB_Y-pointA_Y) )  );
 }
 
 void drawRays2D()
@@ -216,7 +216,7 @@ void drawRays2D()
     for(ray = 0 ; ray < 1 ; ray++ )
     {
         depthOfField = 0;
-        float disH = 1000000, hx = playerDet.x , hy = playerDet.y;
+        float distHorizontal = 1000000, horX = playerDet.x , horY = playerDet.y;
         //check horizontal lines
         float aTan_rayAngle = -1 / tan(raysAngle); //finding angle???
         //printf("raysAngle: %f , tan(raysAngle): %f, -1 / tan(raysAngle): %f\n", raysAngle, tan(raysAngle), (-1 / tan(raysAngle)));
@@ -292,9 +292,9 @@ void drawRays2D()
             //trying to find vertical hits
             if(tileInspecting > 0 && tileInspecting < mapDet.mapCount && mapDet.map[tileInspecting] == mapDet.wall) //hit wall
             { 
-                hx = rayXEndPos; 
-                hy = rayYEndPos; 
-                disH = dist(playerDet.x, playerDet.y, hx, hy, raysAngle);
+                horX = rayXEndPos; 
+                horY = rayYEndPos; 
+                distHorizontal = dist(playerDet.x, playerDet.y, horX, horY, raysAngle);
                 depthOfField = mapMaxDepth;
             } 
             else
@@ -318,7 +318,7 @@ void drawRays2D()
         //-----------------------------
         //check vertical lines
         depthOfField = 0;
-        float disV = 1000000, vx = playerDet.x , vy = playerDet.y;
+        float distVertical = 1000000, vertX = playerDet.x , vertY = playerDet.y;
         float nTan_rayAngle = -tan(raysAngle); //negative tangent
         // num >> 6 = divide by 64    and   num << 6 = multiply by 64
         if( raysAngle > P2 && raysAngle <  P3 )
@@ -350,9 +350,9 @@ void drawRays2D()
 
             if(tileInspecting > 0 && tileInspecting < mapX * mapY && mapDet.map[tileInspecting] == mapDet.wall)
             { 
-                vx = rayXEndPos; 
-                vy = rayYEndPos; 
-                disV = dist( playerDet.x, playerDet.y,vx,vy, raysAngle); 
+                vertX = rayXEndPos; 
+                vertY = rayYEndPos; 
+                distVertical = dist( playerDet.x, playerDet.y,vertX,vertY, raysAngle); 
                 depthOfField = mapMaxDepth;
             } //hit wall
             else
@@ -364,15 +364,15 @@ void drawRays2D()
         }
 
 
-        if(disV < disH)
+        if(distVertical < distHorizontal)
         { 
-            rayXEndPos = vx; 
-            rayYEndPos = vy; 
+            rayXEndPos = vertX; 
+            rayYEndPos = vertY; 
         }
-        if(disH < disV)
+        if(distHorizontal < distVertical)
         { 
-            rayXEndPos = hx; 
-            rayYEndPos = hy;
+            rayXEndPos = horX; 
+            rayYEndPos = horY;
         }
 
         glColor3f(playerImpDet.beamColorVertical3f[0],playerImpDet.beamColorVertical3f[1],
