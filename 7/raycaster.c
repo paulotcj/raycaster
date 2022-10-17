@@ -192,17 +192,28 @@ float dist(float pointA_X, float pointA_Y, float pointB_X, float pointB_Y, float
 }
 
 void drawRays2D()
-{
-    int r, mapX, mapY, tileInspecting, depthOfField;
-    float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset;
-    raysAngle=playerDet.angle-DR*30;
-    if( raysAngle < 0){ raysAngle+= 2*PI; }
-    if( raysAngle > 2*PI){ raysAngle-= 2*PI; }
-	
-	const float accuracyConst = 0.0001;
-	int mapMaxDepth = max_num(mapDet.width, mapDet.height);
+{   
 
-    for(r = 0 ; r < 1 ; r++ )
+    int ray;
+    float rayXEndPos, rayYEndPos, raysAngle, xOffset, yOffset; //rayXPos and rayYPos indicates where the rays hit the closest horizontal line
+    //raysAngle=playerDet.angle;
+
+    const float accuracyConst = 0.0001;
+    float roundUp = 0;
+
+
+
+    int mapX, mapY, tileInspecting = 0 , depthOfField = 0;
+    int mapMaxDepth = max_num(mapDet.width, mapDet.height);   
+
+    raysAngle = playerDet.angle - DR * 30;
+    if( raysAngle < 0){ raysAngle += 2*PI; }
+    if( raysAngle > 2*PI){ raysAngle -= 2*PI; } 
+
+    if(raysAngle == 0 || raysAngle == PI) //looking directly left or right
+    { raysAngle += accuracyConst; }  
+
+    for(ray = 0 ; ray < 1 ; ray++ )
     {
         depthOfField = 0;
         float distHorizontal = 1000000, horX = playerDet.x , horY = playerDet.y;
@@ -222,12 +233,44 @@ void drawRays2D()
         // the 6 in this case is equivalent dividing by 64
         // e.g.:     69 >> 6 = 1   ---> 1000101 >> 6 = 1 (we just lost all the less significant digits)
         // and then: 1 << 6 =  1000000 ---> 64
-        // num >> 6 = divide by 64    and   num << 6 = multiply by 64
-        if(raysAngle > PI){ rayYEndPos = ( ((int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) - accuracyConst; rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; yOffset = -mapDet.tileSizePx; xOffset = -yOffset*aTan_rayAngle;  } //looking up
-        if(raysAngle < PI){ rayYEndPos = ( ((int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) + mapDet.tileSizePx;     rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; yOffset =  mapDet.tileSizePx; xOffset = -yOffset*aTan_rayAngle;  } //looking down
-        if(raysAngle == 0 || raysAngle == PI){ rayXEndPos = playerDet.x; rayYEndPos = playerDet.y; depthOfField = mapMaxDepth; } //looking straight left or right
+
+        if( raysAngle > PI ) //looking up
+        { 
+            roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound; //round to the next tile multiplier position
+
+            rayYEndPos = roundUp - accuracyConst; 
+            rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; // (dist) * -1/tan + x
+            //the movement is focused on Y axis, so it always receive 'full values' while X gets proportionally.
+            yOffset = -mapDet.tileSizePx; //looking up, therefore we reduce Y, since the map has origin (0,0)
+            xOffset = -yOffset * aTan_rayAngle;  
+        } 
+        else if( raysAngle < PI )//looking down
+        { 
+            roundUp = ( (int)playerDet.y >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound;
+            
+            rayYEndPos = roundUp + mapDet.tileSizePx; //trying to be sure we are projecting at least 1 tile
+            rayXEndPos = (playerDet.y - rayYEndPos) * aTan_rayAngle + playerDet.x; 
+            yOffset = mapDet.tileSizePx; 
+            xOffset = -yOffset * aTan_rayAngle;  
+        } 
+        if( raysAngle == 0 || raysAngle == PI ) //looking directly left or right
+        { 
+            rayXEndPos = playerDet.x; 
+            rayYEndPos = playerDet.y; 
+            depthOfField = mapMaxDepth; 
+        } 
+        //printf("p.y: %f, rayYEndPos: %f, (p.y - rayYEndPos):, %f , p.x: %f \n", playerDet.y, rayYEndPos, (playerDet.y - rayYEndPos), playerDet.x);
+        //printf("  rayXEndPos: %f  - (playerDet.y - rayYEndPos) * aTan_rayAngle: %f\n", rayXEndPos, ((playerDet.y - rayYEndPos) * aTan_rayAngle));
+
+        //printf("-- p.x: %f, p.y: %f, rayXEndPos: %f, rayYEndPos: %f\n", playerDet.x, playerDet.y, rayXEndPos, rayYEndPos);
         
-        
+
+        //the rayYEndPos and rayXEndPos where given a somewhat arbitrary lengthy value, we are just trying to point it in the same direction as the player
+        // the goal now is to use this way and its direction, figure out, if we will hit a wall.
+
+
+    
+        //printf("--------------------------------------\n");
         while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
         {
             
@@ -262,25 +305,44 @@ void drawRays2D()
             } 
 
         }
-
-        // glColor3f(0,1,0);
-        // glLineWidth(6);
+        //--------
+        // glColor3f(playerImpDet.beamColorHorizontal3f[0],playerImpDet.beamColorHorizontal3f[1],
+        //     playerImpDet.beamColorHorizontal3f[2]);
+        // glLineWidth(playerImpDet.beamThicknessHorizontal);
         // glBegin(GL_LINES);
         // glVertex2i(playerDet.x, playerDet.y);
         // glVertex2i(rayXEndPos, rayYEndPos);
         // glEnd();
 
 
+        //-----------------------------
         //check vertical lines
         depthOfField = 0;
         float distVertical = 1000000, vertX = playerDet.x , vertY = playerDet.y;
         float nTan_rayAngle = -tan(raysAngle); //negative tangent
         // num >> 6 = divide by 64    and   num << 6 = multiply by 64
-        if( raysAngle > P2 && raysAngle <  P3 ){ rayXEndPos = ( ((int)playerDet.x >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) - accuracyConst; rayYEndPos = (playerDet.x - rayXEndPos) * nTan_rayAngle + playerDet.y; xOffset = -mapDet.tileSizePx; yOffset = -xOffset*nTan_rayAngle;  } //looking left
-        if( raysAngle < P2 || raysAngle >  P3 ){ rayXEndPos = ( ((int)playerDet.x >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) + mapDet.tileSizePx;     rayYEndPos = (playerDet.x - rayXEndPos) * nTan_rayAngle + playerDet.y; xOffset =  mapDet.tileSizePx; yOffset = -xOffset*nTan_rayAngle;  } //looking right
-        if( raysAngle == 0 || raysAngle == PI ){ rayXEndPos = playerDet.x; rayYEndPos = playerDet.y; depthOfField = mapMaxDepth; } //looking straight up or down
+        if( raysAngle > P2 && raysAngle <  P3 )
+        { 
+            rayXEndPos = ( ((int)playerDet.x >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) - accuracyConst; 
+            rayYEndPos = (playerDet.x - rayXEndPos) * nTan_rayAngle + playerDet.y; 
+            xOffset = -mapDet.tileSizePx; 
+            yOffset = -xOffset*nTan_rayAngle;  
+        } //looking left
+        if( raysAngle < P2 || raysAngle >  P3 )
+        { 
+            rayXEndPos = ( ((int)playerDet.x >> rayDetails.RayPositionRound) << rayDetails.RayPositionRound ) + mapDet.tileSizePx;     
+            rayYEndPos = (playerDet.x - rayXEndPos) * nTan_rayAngle + playerDet.y; 
+            xOffset =  mapDet.tileSizePx; 
+            yOffset = -xOffset*nTan_rayAngle;  
+        } //looking right
+        if( raysAngle == 0 || raysAngle == PI )
+        { 
+            rayXEndPos = playerDet.x; 
+            rayYEndPos = playerDet.y; 
+            depthOfField = mapMaxDepth; 
+        } //looking straight up or down
         
-        while(depthOfField < 8) //this is max depth of the map - we do not need to check further if that's the case
+        while(depthOfField < mapMaxDepth) //this is max depth of the map - we do not need to check further if that's the case
         {
             mapX = (int)(rayXEndPos) >> rayDetails.RayPositionRound; 
             mapY = (int)(rayYEndPos) >> rayDetails.RayPositionRound; 
@@ -301,8 +363,6 @@ void drawRays2D()
             } //next line
         }
 
-        if(disV < disH){ rayXEndPos = vx; rayYEndPos = vy; }
-        if(disH < disV){ rayXEndPos = hx; rayYEndPos = hy;}
 
         if(distVertical < distHorizontal)
         { 
@@ -322,8 +382,6 @@ void drawRays2D()
         glVertex2i(playerDet.x, playerDet.y);
         glVertex2i(rayXEndPos, rayYEndPos);
         glEnd();
-
-
     }
 }
 
