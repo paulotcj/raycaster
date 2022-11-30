@@ -16,7 +16,6 @@ class Map
 {
     constructor() 
     {
-        // console.log("Map.constructor");
         this.grid = 
         [
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], // 0
@@ -51,7 +50,6 @@ class Map
 
     render() 
     {
-        // console.log("Map.render");
         for (var i = 0; i < MAP_NUM_ROWS; i++) 
         {
             for (var j = 0; j < MAP_NUM_COLS; j++) 
@@ -78,7 +76,7 @@ class Player
         this.walkDirection = 0; // -1 if back, +1 if front
         this.rotationAngle = Math.PI / 2; // looking 90 deg, but since the screen start left to right top to bottom, it will point down
         this.moveSpeed = 2.0;
-        this.rotationSpeed = 0.5 * (Math.PI / 180); // 2 * 0.0174 = 0.0349
+        this.rotationSpeed = 2 * (Math.PI / 180); // 2 * 0.0174 = 0.0349
 
     }
     update()
@@ -128,14 +126,12 @@ class Ray
         //
         // Right: Right is when we have angles between 0deg and 90deg, and, between 270 and 360
         // to put differently, between 0 and 0.5*PI or between 1.5*PI and 2*PI
-        console.log("    rayangle: " + this.rayAngle);
         this.isRayFacingDown = this.rayAngle > 0 && this.rayAngle < Math.PI;
         this.isRayFacingUp = !this.isRayFacingDown;
-        // console.log("isRayFacingDown: " + this.isRayFacingDown);
+
 
         this.isRayFacingRight = this.rayAngle < 0.5 * Math.PI || this.rayAngle > 1.5 * Math.PI;
         this.isRayFacingLeft = !this.isRayFacingRight;
-        console.log("this.isRayFacingRight: " + this.isRayFacingRight);
     }
 
     cast(columnId)
@@ -160,13 +156,20 @@ class Ray
         yintercept += this.isRayFacingDown ? TILE_SIZE : 0;
 
         // Find the x-coordinate of the closest horizontal grid intersection
+        //  note: we have the yintercept, which in a triangle this would be the hypotenuse
+        //   and we are trying to find the adjacent side, and we have the angle
+        //  So the formula: tan(x) = opp / ajd -> adj = opp / tan(x)
         xintercept = player.x + (yintercept - player.y) / Math.tan(this.rayAngle);
 
         // Calculate the increment xstep and ystep
         ystep = TILE_SIZE;
         ystep *= this.isRayFacingUp ? -1 : 1;
 
+        //again: adj = opp / tan(x)
         xstep = TILE_SIZE / Math.tan(this.rayAngle);
+        //console.log("this.rayAngle: " + this.rayAngle.toFixed(4) + "  Math.tan(this.rayAngle): " + Math.tan(this.rayAngle).toFixed(4) + "   xstep: " + parseFloat(xstep).toFixed(4)   );
+        // if the ray is supposed to face left but the xstep is positive, then multiply by -1, so the orientation is correct
+        // if the ray is supposed to face right but the xstep is negative, then multiply by -1, so the orientation is correct
         xstep *= (this.isRayFacingLeft && xstep > 0) ? -1 : 1;
         xstep *= (this.isRayFacingRight && xstep < 0) ? -1 : 1;
 
@@ -277,7 +280,6 @@ function castAllRays()
 
 function setup() 
 {
-    // console.log("setup");
     createCanvas(WINDOW_WIDTH, WINDOW_HEIGHT);
 
 }
@@ -289,7 +291,6 @@ function update()
 
 function draw() 
 {
-    // console.log("draw");
     update();
 
     grid.render();
