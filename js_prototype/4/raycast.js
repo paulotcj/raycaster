@@ -176,6 +176,8 @@ class Ray
         var nextHorzTouchX = xintercept;
         var nextHorzTouchY = yintercept;
 
+        //we are checkin horizontal (wall) collision, with this adjustment, we can guarantee the ray is
+        //  indeed inside the tile which we want to check against
         if (this.isRayFacingUp)
         {
             nextHorzTouchY--;
@@ -183,8 +185,11 @@ class Ray
 
 
         // Increment xstep and ystep until we find a wall
-        while (nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT) {
-            if (grid.hasWallAt(nextHorzTouchX, nextHorzTouchY)) {
+        while (nextHorzTouchX >= 0 && nextHorzTouchX <= WINDOW_WIDTH && 
+               nextHorzTouchY >= 0 && nextHorzTouchY <= WINDOW_HEIGHT ) 
+        {
+            if (grid.hasWallAt(nextHorzTouchX, nextHorzTouchY)) 
+            {
                 foundHorzWallHit = true;
                 wallHitX = nextHorzTouchX;
                 wallHitY = nextHorzTouchY;
@@ -193,7 +198,8 @@ class Ray
                 line(player.x, player.y, wallHitX, wallHitY);
                 
                 break;
-            } else {
+            } else 
+            {
                 nextHorzTouchX += xstep;
                 nextHorzTouchY += ystep;
             }
