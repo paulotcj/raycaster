@@ -346,6 +346,49 @@ function castAllRays()
     }
 }
 
+function render3DProjectedWalls()
+{
+    // loop every ray in the array of rays
+    for(var i = 0; i < NUM_RAYS ; i++)
+    {
+        var ray = rays[i];
+
+        var rayDistance = ray.distance;
+
+        // calculate the distance to the projection plane
+        //   note: we are trying to calculate the distance or the adjacent side of a 90deg triangle
+        //    we have the angle and we have the opposite size (WINDOW_WIDTH / 2), so the formula is:
+        //    adj = opp/tan(x)
+        var distanceProjectionPlane = (WINDOW_WIDTH / 2) / Math.tan(FOV_ANGLE / 2);
+
+        // projected wall height
+        //  the equality formula is: 'actual wall height'/'distance to wall' = 'projected wall height'/'distance form player to proj. plane'
+        //  since we want to find 'projected wall height', we reorganize the equation to:
+        //   'projected wall height' = 'actual wall height'/'distance to wall' * 'distance form player to proj. plane'
+        var wallStripHeight = (TILE_SIZE / rayDistance) * distanceProjectionPlane;
+
+        fill("rgba(255, 255, 255, 1.0)");
+        noStroke();
+        // rect(x_start, y_start, width, height)
+        //  note: for the y_start, we want to place the rectangle aligned with the center of the projection
+        //   so that would be:  A = WINDOW_HEIGHT / 2    , but the rectangle also needs to be centered, so to find
+        //   its center we do: B = wallStripHeight / 2   , now we need to do  C = A - B
+        //   for instance suppose you have a WINDOW_HEIGHT = 1000px, and wallStripHeight = 300px
+        //   you would have (1000/2) - (300/2) = 500 - 150 = 350. 
+        //   That means, from the Y axis we would have 350 blank pixels, draw 300, then another 350 blank pixels
+        //   resulting in the 'strip' aligned with the center of the screen
+
+        rect(
+            i * WALL_STRIP_WIDTH,
+            (WINDOW_HEIGHT / 2) - (wallStripHeight / 2),
+            WALL_STRIP_WIDTH,
+            wallStripHeight
+        );
+
+
+    }
+}
+
 function distanceBetweenPoints(x1, y1, x2, y2)
 {
     return Math.sqrt( (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) );
@@ -367,6 +410,8 @@ function draw()
 {
     clear("#212121");
     update();
+
+    render3DProjectedWalls();
 
     grid.render();
     for(ray of rays)
