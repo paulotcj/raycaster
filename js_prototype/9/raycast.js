@@ -357,7 +357,7 @@ function render3DProjectedWalls()
         var correctWallDistance = ray.distance * Math.cos( ray.rayAngle - player.rotationAngle);
         
         // enable this and comment the code above to enable fishbowl view
-        //var rayDistance = correctWallDistance;
+        //var correctWallDistance = ray.distance;
 
         // calculate the distance to the projection plane
         //   note: we are trying to calculate the distance or the adjacent side of a 90deg triangle
@@ -371,7 +371,10 @@ function render3DProjectedWalls()
         //   'projected wall height' = 'actual wall height'/'distance to wall' * 'distance form player to proj. plane'
         var wallStripHeight = (TILE_SIZE / correctWallDistance) * distanceProjectionPlane;
 
-        fill("rgba(255, 255, 255, 1.0)");
+
+        var alpha = 170 / correctWallDistance;
+
+        fill("rgba(255, 255, 255, "+alpha+")");
         noStroke();
         // rect(x_start, y_start, width, height)
         //  note: for the y_start, we want to place the rectangle aligned with the center of the projection
