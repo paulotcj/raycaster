@@ -146,7 +146,7 @@ class Ray
         this.isRayFacingLeft = !this.isRayFacingRight;
     }
 
-    cast(columnId)
+    cast()
     {
         var xintercept, yintercept;
         var xstep, ystep;
@@ -263,10 +263,17 @@ class Ray
             : Number.MAX_VALUE;
 
         // only store the smallest of the distances
-        this.wallHitX = (horzHitDistance < vertHitDistance) ? horzWallHitX : vertWallHitX;
-        this.wallHitY = (horzHitDistance < vertHitDistance) ? horzWallHitY : vertWallHitY;
-        this.distance = (horzHitDistance < vertHitDistance) ? horzHitDistance : vertHitDistance;
-        this.wasHitVertical = (vertHitDistance < horzHitDistance);        
+        if (vertHitDistance < horzHitDistance) {
+            this.wallHitX = vertWallHitX;
+            this.wallHitY = vertWallHitY;
+            this.distance = vertHitDistance;
+            this.wasHitVertical = true;
+        } else {
+            this.wallHitX = horzWallHitX;
+            this.wallHitY = horzWallHitY;
+            this.distance = horzHitDistance;
+            this.wasHitVertical = false;
+        }        
 
 
 
@@ -328,21 +335,18 @@ function keyReleased() {
 
 function castAllRays()
 {
-    var columnId = 0;
     // start first ray subtracting half of the FOV
     var rayAngle = player.rotationAngle - (FOV_ANGLE / 2); 
 
     rays = [];
     // loop all columns casting the rays
-    for(var i = 0; i < NUM_RAYS ; i++)
+    for(var col = 0; col < NUM_RAYS ; col++)
     {
         var ray = new Ray(rayAngle);
-        ray.cast(columnId);
+        ray.cast();
         rays.push(ray);
 
         rayAngle += FOV_ANGLE / NUM_RAYS;
-
-        columnId++;
     }
 }
 
@@ -372,9 +376,11 @@ function render3DProjectedWalls()
         var wallStripHeight = (TILE_SIZE / correctWallDistance) * distanceProjectionPlane;
 
 
-        var alpha = 170 / correctWallDistance;
+        var alpha = 1.0 //170 / correctWallDistance;
 
-        fill("rgba(255, 255, 255, "+alpha+")");
+        var color = ray.wasHitVertical ? 255 : 180;
+
+        fill("rgba("+color+", "+color+", "+color+", "+alpha+")");
         noStroke();
         // rect(x_start, y_start, width, height)
         //  note: for the y_start, we want to place the rectangle aligned with the center of the projection
