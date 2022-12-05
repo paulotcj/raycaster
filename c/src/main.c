@@ -52,7 +52,8 @@ void destroyWindow()
 
 void setup() 
 {
-    // TODO: initialize game objects and variables
+    playerX = 0;
+    playerY = 0;
 }
 
 void processInput() 
@@ -77,7 +78,8 @@ void processInput()
 
 void update() 
 {
-    // TODO: update game objects
+    playerX += 1;
+    playerY += 1;
 }
 
 void render() 
@@ -85,7 +87,11 @@ void render()
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
-    // TODO: render all game objects
+    //--------
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+    SDL_Rect rect = {playerX, playerY, 20, 20};
+    SDL_RenderFillRect(renderer, &rect);
+    //--------
 
     SDL_RenderPresent(renderer);
 }
