@@ -79,8 +79,15 @@ void processInput()
 
 void update() 
 {
-    // waste some time until we reach the target frame time length
-    while(!SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH) );
+    // Compute how long we have until the reach the target frame time in milliseconds
+    int timeToWait = FRAME_TIME_LENGTH - ( SDL_GetTicks() - ticksLastFrame );
+
+    // Only delay execution if we are running too fast
+    if( timeToWait > 0 && timeToWait <= FRAME_TIME_LENGTH)
+    { 
+        SDL_Delay(timeToWait);
+    }
+
 
     float deltaTime = ( SDL_GetTicks() - ticksLastFrame ) / 1000.0f;
 
