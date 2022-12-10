@@ -54,7 +54,6 @@ int ticksLastFrame;
 
 Uint32* colorBuffer = NULL;
 SDL_Texture* colorBufferTexture;
-Uint32* wallTexture = NULL;
 
 
 
@@ -95,7 +94,6 @@ int initializeWindow()
 
 void destroyWindow() 
 {
-    free(wallTexture);
     free(colorBuffer);
     SDL_DestroyTexture(colorBufferTexture);
 
@@ -127,17 +125,6 @@ void setup()
         WINDOW_WIDTH,
         WINDOW_HEIGHT
     );
-
-    // manually create a blue texture with black pixels in every x & y multiples of 8
-    wallTexture = (Uint32*)malloc( sizeof(Uint32) * TEXTURE_WIDTH * TEXTURE_HEIGHT );
-    
-    for (int x = 0; x < TEXTURE_WIDTH; x++) 
-    {
-        for (int y = 0; y < TEXTURE_HEIGHT; y++) 
-        {
-            wallTexture[TEXTURE_WIDTH * y + x] = (x % 8 && y % 8) ? 0xFF0000FF : 0xFF000000;
-        }
-    }    
 
 }
 
@@ -286,11 +273,11 @@ void castRay(float rayAngle, int stripId)
     float vertWallHitY = 0;
     int vertWallContent = 0;
 
-    // Find the x-coordinate of the closest vertical grid intersection
+    // Find the x-coordinate of the closest horizontal grid intersection
     xintercept = floor(player.x / TILE_SIZE) * TILE_SIZE;
     xintercept += isRayFacingRight ? TILE_SIZE : 0;
 
-    // Find the y-coordinate of the closest vertical grid intersection
+    // Find the y-coordinate of the closest horizontal grid intersection
     yintercept = player.y + (xintercept - player.x) * tan(rayAngle);
 
     // Calculate the increment xstep and ystep
@@ -484,27 +471,10 @@ void generate3DProjection()
             colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF333333;        
         }
 
-        // calculate texture offset X
-        int textureOffsetX;
-        if (rays[i].wasHitVertical)
-        {
-            textureOffsetX = (int)rays[i].wallHitY % TEXTURE_HEIGHT;
-        }
-        else
-        {
-            textureOffsetX = (int)rays[i].wallHitX % TEXTURE_WIDTH;        
-        }
-
         // render the wall from wallTopPixel to wallBottomPixel
         for (int y = wallTopPixel; y < wallBottomPixel; y++) 
         {
-            // calculate texture offset Y
-            int distanceFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
-            int textureOffsetY = distanceFromTop * ((float)TEXTURE_HEIGHT / wallStripHeight);
-
-            // set the color of the wall based on the color from the texture
-            Uint32 texelColor = wallTexture[(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
-            colorBuffer[(WINDOW_WIDTH * y) + i] = texelColor;
+            colorBuffer[(WINDOW_WIDTH * y) + i] = rays[i].wasHitVertical ? 0xFFFFFFFF : 0xFFCCCCCC;
         }
 
         // set the color of the floor
