@@ -198,6 +198,9 @@ float normalizeAngle(float angle)
     angle = remainder(angle, TWO_PI);
     if( angle < 0 )
     {
+        //2*pi would reset the angle to the start (or end, depending of your preference) position
+        // but that might translate into a hiccup
+        // by doing (2*pi) + angle  the transition is seamless
         angle = TWO_PI + angle;
     }
 
@@ -331,7 +334,7 @@ void castRay(float rayAngle, int stripId)
         nextVertTouchY >= 0 && nextVertTouchY <= WINDOW_HEIGHT
         ) 
     {
-        float xToCheck = nextVertTouchX + (isRayFacingLeft ? -1 : 0);
+        float xToCheck = nextVertTouchX + (isRayFacingLeft ? -1 : 0); // if ray is facing left, force one pixel left so we are inside a grid cell
         float yToCheck = nextVertTouchY;
         
         if (mapHasWallAt(xToCheck, yToCheck)) 
@@ -352,6 +355,7 @@ void castRay(float rayAngle, int stripId)
 
 
     // Calculate both horizontal and vertical hit distances and choose the smallest one
+    //  if you found a wall hit, calculate the distance
     float horzHitDistance = foundHorzWallHit
         ? distanceBetweenPoints(player.x, player.y, horzWallHitX, horzWallHitY)
         : FLT_MAX;
@@ -359,6 +363,7 @@ void castRay(float rayAngle, int stripId)
         ? distanceBetweenPoints(player.x, player.y, vertWallHitX, vertWallHitY)
         : FLT_MAX;
 
+    // only store the smallest distance
     if (vertHitDistance < horzHitDistance) 
     {
         rays[stripId].distance = vertHitDistance;
@@ -387,8 +392,10 @@ void castRay(float rayAngle, int stripId)
 
 void castAllRays()
 {
+    // start first ray subtracting half of the FOV
     float rayAngle = player.rotationAngle - (FOV_ANGLE / 2);
 
+    // loop all columns casting the rays
     for(int stripID = 0 ; stripID < NUM_RAYS ; stripID++)
     {
         castRay(rayAngle, stripID);
@@ -493,8 +500,22 @@ void generate3DProjection()
 {
     for (int i = 0; i < NUM_RAYS; i++) 
     {
+        // get the perpendicular distance to the wall to fix fishbowl distortion
         float perpDistance = rays[i].distance * cos(rays[i].rayAngle - player.rotationAngle);
+
+        // enable this and comment the code above to enable fishbowl view
+        //float perpDistance = ray.distance;
+
+        // calculate the distance to the projection plane
+        //   note: we are trying to calculate the distance or the adjacent side of a 90deg triangle
+        //    we have the angle and we have the opposite size (WINDOW_WIDTH / 2), so the formula is:
+        //    adj = opp/tan(x)        
         float distanceProjPlane = (WINDOW_WIDTH / 2) / tan(FOV_ANGLE / 2);
+
+        // projected wall height
+        //  the equality formula is: 'actual wall height'/'distance to wall' = 'projected wall height'/'distance form player to proj. plane'
+        //  since we want to find 'projected wall height', we reorganize the equation to:
+        //   'projected wall height' = 'actual wall height'/'distance to wall' * 'distance form player to proj. plane'        
         float projectedWallHeight = (TILE_SIZE / perpDistance) * distanceProjPlane;
 
         int wallStripHeight = (int)projectedWallHeight;
