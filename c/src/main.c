@@ -53,12 +53,15 @@ SDL_Renderer* renderer = NULL;
 int isGameRunning = FALSE;
 int ticksLastFrame;
 
+//---
 Uint32* colorBuffer = NULL;
 SDL_Texture* colorBufferTexture;
 Uint32* wallTexture = NULL;
+//---
 
+//-------------------------------------------
 
-
+// SDL stuff - start
 int initializeWindow() 
 {
     if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
@@ -105,18 +108,26 @@ void destroyWindow()
     SDL_Quit();
 }
 
+// SDL stuff - END
+//-------------------------------------------
+
 void setup() 
 {
+    //----------------------
+    //player setup
     player.x = WINDOW_WIDTH / 2;
     player.y = WINDOW_HEIGHT / 2;
-    player.width = 1;
-    player.height = 1;
+    player.width = 20;
+    player.height = 20;
     player.turnDirection = 0; // -1 if left, +1 if right
     player.walkDirection = 0; // -1 if back, +1 if front
     player.rotationAngle = PI;  //start looking left
     player.walkSpeed = 100;
     player.turnSpeed = 45 * (PI / 180); // 45 * 0.01745 = 0.785398163397448
+    //----------------------
 
+    //----------------------
+    //color and texture
     // allocate the total amount of bytes in memory to hold our colorbuffer
     colorBuffer = (Uint32*)malloc(sizeof(Uint32) * WINDOW_WIDTH * WINDOW_HEIGHT);
 
@@ -132,13 +143,16 @@ void setup()
     // manually create a blue texture with black pixels in every x & y multiples of 8
     wallTexture = (Uint32*)malloc( sizeof(Uint32) * TEXTURE_WIDTH * TEXTURE_HEIGHT );
     
+    //create a texture
     for (int x = 0; x < TEXTURE_WIDTH; x++) 
     {
         for (int y = 0; y < TEXTURE_HEIGHT; y++) 
         {
+            //0x????????=> 0x(00),(00),(00),(00) => 0x(alpha)(red)(gree)(blue)
             wallTexture[TEXTURE_WIDTH * y + x] = (x % 8 && y % 8) ? 0xFF0000FF : 0xFF000000;
         }
     }    
+    //----------------------
 
 }
 
@@ -164,6 +178,8 @@ void movePlayer(float deltaTime)
     float newPlayerX = player.x + cos(player.rotationAngle) * moveStep;
     float newPlayerY = player.y + sin(player.rotationAngle) * moveStep;
 
+    //move player if the new coordinate (according with its movement) results in no wall
+    // note: may add a 'slide' feature, where player will be able to move in one axis
     if (!mapHasWallAt(newPlayerX, newPlayerY)) {
         player.x = newPlayerX;
         player.y = newPlayerY;
@@ -177,8 +193,8 @@ void renderPlayer()
     {
         player.x * MINIMAP_SCALE_FACTOR,
         player.y * MINIMAP_SCALE_FACTOR,
-        player.width * MINIMAP_SCALE_FACTOR * 30,
-        player.height * MINIMAP_SCALE_FACTOR * 30
+        player.width * MINIMAP_SCALE_FACTOR,
+        player.height * MINIMAP_SCALE_FACTOR
     };
     SDL_RenderFillRect(renderer, &playerRect);
 
@@ -393,6 +409,11 @@ void castRay(float rayAngle, int stripId)
 void castAllRays()
 {
     // start first ray subtracting half of the FOV
+    //  note: we are tying to find the angle of the first ray, so if the player has a field of view of 60deg
+    //   we divide it by 2, so it means it's 30deg to the left to where the player is looking plus 30deg
+    //   to the right. In this case we start scanning from the left to right, so we subtract the angle
+    //   so imagine the player is looking at 45deg, we then subtract 30 from FOV/2 which indicates the
+    //   first ray is cast at 15deg
     float rayAngle = player.rotationAngle - (FOV_ANGLE / 2);
 
     // loop all columns casting the rays
@@ -427,7 +448,7 @@ void renderMap()
             SDL_SetRenderDrawColor(renderer, tileColor, tileColor, tileColor, 255);
             SDL_RenderFillRect(renderer , &mapTileRect);
 
-            SDL_SetRenderDrawColor(renderer, 255, 0, 255, 255);
+            SDL_SetRenderDrawColor(renderer, 0, 100, 100, 255);
             SDL_RenderDrawRect(renderer, &mapTileRect);
 
 
@@ -485,9 +506,20 @@ void processInput()
 void update() 
 {
     // Compute how long we have until the reach the target frame time in milliseconds
-    while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
+    // while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
 
 
+    // // Compute how long we have until the reach the target frame time in milliseconds
+    int timeToWait = FRAME_TIME_LENGTH - ( SDL_GetTicks() - ticksLastFrame );
+
+    // Only delay execution if we are running too fast
+    if( timeToWait > 0 && timeToWait <= FRAME_TIME_LENGTH)
+    { 
+        SDL_Delay(timeToWait);
+    }
+
+
+    // 'current tick' - 'ticks last frame' = delta
     float deltaTime = ( SDL_GetTicks() - ticksLastFrame ) / 1000.0f;
 
     ticksLastFrame = SDL_GetTicks();
@@ -577,25 +609,35 @@ void clearColorBuffer(Uint32 color)
 
 void renderColorBuffer() 
 {
+    //Update the given texture rectangle with new pixel data
     SDL_UpdateTexture(
-        colorBufferTexture,
-        NULL,
-        colorBuffer,
-        (int)(WINDOW_WIDTH * sizeof(Uint32))
+        colorBufferTexture, //texture
+        NULL,               //sdl rect - represents the are to update
+        colorBuffer,        //raw pixel data
+        (int)(WINDOW_WIDTH * sizeof(Uint32)) //pitch - number of bytes in a row of pixel data
     );
-    SDL_RenderCopy(renderer, colorBufferTexture, NULL, NULL);
+
+    //Copy a portion of the texture to the current rendering target
+    SDL_RenderCopy(
+        renderer, 
+        colorBufferTexture, 
+        NULL, 
+        NULL);
 }
 
 void render() 
 {
+    //---
+    //set clear color and clear frame
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+    //---
 
     generate3DProjection();
 
     renderColorBuffer();
 
-    // set all color buffer values to black
+    // set all color buffer values to black 
     clearColorBuffer(0xFF000000);    
 
     renderMap();
@@ -611,6 +653,7 @@ int main()
 
     setup();
 
+    //game loop - process input, update, render
     while (isGameRunning) 
     {
         processInput();
