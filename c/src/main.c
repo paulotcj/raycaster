@@ -129,6 +129,7 @@ void setup()
     //----------------------
     //color and texture
     // allocate the total amount of bytes in memory to hold our colorbuffer
+    // colorBuffer = Uint32 * 1280 * 832 = 1,064,960
     colorBuffer = (Uint32*)malloc(sizeof(Uint32) * WINDOW_WIDTH * WINDOW_HEIGHT);
 
     // create an SDL_Texture to display the colorbuffer
@@ -246,13 +247,6 @@ void castRay(float rayAngle, int stripId)
     int isRayFacingRight = rayAngle < 0.5 * PI || rayAngle > 1.5 * PI;
     int isRayFacingLeft = !isRayFacingRight;
 
-    // printf("---------------------------\n");
-    // printf("player.rotationAngle: %f \n", player.rotationAngle);
-    // printf("isRayFacingDown: %d \n", isRayFacingDown);
-    // printf("isRayFacingUp: %d \n", isRayFacingUp);
-    // printf("isRayFacingRight: %d \n", isRayFacingRight);
-    // printf("isRayFacingLeft: %d \n", isRayFacingLeft);
-
     float xintercept, yintercept;
     float xstep, ystep;
 
@@ -264,6 +258,9 @@ void castRay(float rayAngle, int stripId)
     float horzWallHitY = 0;
     int horzWallContent = 0;
 
+    //------------------------
+    // INTERCEPT SECTION - START
+    //
     // Find the y-coordinate of the closest horizontal grid intersection
     //  take the player coordinates and divide it by the tile size and round down the division
     //  to find which tile (row) is directly above the player. Keep in mind the tile (rows) start
@@ -278,17 +275,26 @@ void castRay(float rayAngle, int stripId)
     //   and we are trying to find the adjacent side, and we have the angle
     //  So the formula: tan(x) = opp / ajd -> adj = opp / tan(x)    
     xintercept = player.x + ( yintercept - player.y ) / tan(rayAngle);
-
+    
+    // INTERCEPT SECTION - END
+    //------------------------
+    
+    //------------------------
+    // STEP SECTION - START
     // Calculate the increment xstep and ystep
+    //  note: when scanning horizontally, the Y step is always 1 tile size
     ystep = TILE_SIZE;
     ystep *= isRayFacingUp ? -1 : 1;
 
+    //note: when scanning horizontally the X step is always proportional
     xstep = TILE_SIZE / tan(rayAngle);
     // if the ray is supposed to face left but the xstep is positive, then multiply by -1, so the orientation is correct
     // if the ray is supposed to face right but the xstep is negative, then multiply by -1, so the orientation is correct
     xstep *= (isRayFacingLeft && xstep > 0  ) ? -1 : 1;
     xstep *= (isRayFacingRight && xstep < 0 ) ? -1 : 1;
-
+    // STEP SECTION - START
+    //------------------------
+    
 
     float nextHorzTouchX = xintercept;
     float nextHorzTouchY = yintercept;
@@ -307,7 +313,7 @@ void castRay(float rayAngle, int stripId)
             // found a wall hit
             horzWallHitX = nextHorzTouchX;
             horzWallHitY = nextHorzTouchY;
-            horzWallContent = map[(int)floor(yToCheck / TILE_SIZE)][(int)floor(xToCheck / TILE_SIZE)];
+            horzWallContent = map[ (int)floor(yToCheck / TILE_SIZE) ][ (int)floor(xToCheck / TILE_SIZE) ];
             foundHorzWallHit = TRUE;
             break;
         }
@@ -326,13 +332,20 @@ void castRay(float rayAngle, int stripId)
     float vertWallHitY = 0;
     int vertWallContent = 0;
 
+    //------------------------
+    // INTERCEPT SECTION - START
+    //
     // Find the x-coordinate of the closest vertical grid intersection
     xintercept = floor(player.x / TILE_SIZE) * TILE_SIZE;
     xintercept += isRayFacingRight ? TILE_SIZE : 0;
 
     // Find the y-coordinate of the closest vertical grid intersection
     yintercept = player.y + (xintercept - player.x) * tan(rayAngle);
-
+    // INTERCEPT SECTION - START
+    //------------------------
+    
+    //------------------------
+    // STEP SECTION - START
     // Calculate the increment xstep and ystep
     xstep = TILE_SIZE;
     xstep *= isRayFacingLeft ? -1 : 1;
@@ -340,6 +353,9 @@ void castRay(float rayAngle, int stripId)
     ystep = TILE_SIZE * tan(rayAngle);
     ystep *= (isRayFacingUp && ystep > 0) ? -1 : 1;
     ystep *= (isRayFacingDown && ystep < 0) ? -1 : 1;
+    // STEP SECTION - END
+    //------------------------
+    
 
     float nextVertTouchX = xintercept;
     float nextVertTouchY = yintercept;
@@ -369,6 +385,7 @@ void castRay(float rayAngle, int stripId)
         }
     }   
 
+    //-------------------------------
 
     // Calculate both horizontal and vertical hit distances and choose the smallest one
     //  if you found a wall hit, calculate the distance
@@ -454,6 +471,22 @@ void renderMap()
 
         }
     }
+
+    //------------------
+    //test coordinates - start
+    SDL_Rect mapTileRect2 = 
+    {
+        0 + 800, //x
+        0 + 200 ,//y
+        TILE_SIZE, //width
+        TILE_SIZE  //height
+    };
+
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderFillRect(renderer , &mapTileRect2);
+
+    //test coordinates - end
+    //------------------
 }
 
 
@@ -533,10 +566,19 @@ void generate3DProjection()
     for (int i = 0; i < NUM_RAYS; i++) 
     {
         // get the perpendicular distance to the wall to fix fishbowl distortion
+        //  Notes: the first thing here is to get the proper dimensions and angles of the triangle
+        //   since we want to adjust the ray to its correct size, being the correct size the distance
+        //   from player to the wall, we need to find the angle of the ray with the origin in the
+        //   player angle, and this is: rays[i].rayAngle - player.rotationAngle
+        //
+        //   Now, from the triangle, we have the player distance (ADJ), ray angle (theta/X), and ray distance
+        //   also know as distorted distance (HYP).
+        //   Considering the formula: cos(x) = ADJ / HYP  ,  and considering we want to adjust HYP, we
+        //   can rearranje the formula as: ADJ = HYP * COS(x) => 'correct dist' = 'distorted dist' * COS(x)
         float perpDistance = rays[i].distance * cos(rays[i].rayAngle - player.rotationAngle);
 
         // enable this and comment the code above to enable fishbowl view
-        //float perpDistance = ray.distance;
+        // float perpDistance = rays[i].distance;
 
         // calculate the distance to the projection plane
         //   note: we are trying to calculate the distance or the adjacent side of a 90deg triangle
@@ -552,19 +594,36 @@ void generate3DProjection()
 
         int wallStripHeight = (int)projectedWallHeight;
 
+        //  note: for the wallTopPixel, we want to place the rectangle aligned with the center of the projection
+        //   so that would be:  A = WINDOW_HEIGHT / 2    , but the rectangle also needs to be centered, so to find
+        //   its center we do: B = wallStripHeight / 2   , now we need to do  C = A - B
+        //   for instance suppose you have a WINDOW_HEIGHT = 1000px, and wallStripHeight = 300px
+        //   you would have (1000/2) - (300/2) = 500 - 150 = 350. 
+        //   That means, from the Y axis we would have 350 blank pixels, draw 300, then another 350 blank pixels
+        //   resulting in the 'strip' aligned with the center of the screen
         int wallTopPixel = (WINDOW_HEIGHT / 2) - (wallStripHeight / 2);
         wallTopPixel = wallTopPixel < 0 ? 0 : wallTopPixel;
 
         int wallBottomPixel = (WINDOW_HEIGHT / 2) + (wallStripHeight / 2);
         wallBottomPixel = wallBottomPixel > WINDOW_HEIGHT ? WINDOW_HEIGHT : wallBottomPixel;
 
+
         // set the color of the ceiling
+        //  Notes: colorBuffer is an one dimensional array. So if we have an window W: 1280 and H: 832
+        //  colorbuffer is 1,064,960. And if we want to colour the first column we could use an operation like
+        //  this: colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF333333
         for (int y = 0; y < wallTopPixel; y++)
         {
+            // suppose this is column 0 and the first wall top pixel is at position 100 and we start at 
+            // the pixel 0, we would have:  (1280 * 0) + 0 = 0, then: (1280 * 1) + 0 = 1280
+            // then: (1280 * 2) + 0 = 2560.
+            // As you can see, we are working basically as a scanline, when we set the 1st pixel we need to
+            //  jump an entire window width in order to reach the next pixel to colour
             colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF333333;        
         }
 
         // calculate texture offset X
+        //  e.g.: rays[i].wallHitY % TEXTURE_HEIGHT => 211 % 32 = 19 pixels offset
         int textureOffsetX;
         if (rays[i].wasHitVertical)
         {
@@ -579,9 +638,15 @@ void generate3DProjection()
         for (int y = wallTopPixel; y < wallBottomPixel; y++) 
         {
             // calculate texture offset Y
+            //  suppose dist. from top = 200; wallStripHeight = 200; WINDOW_HEIGHT = 600; then we would
+            //  have: 200 + 100 - 300 = 300 - 300 = 0
             int distanceFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
+
+            // from the previous example: 0 * (TEXTURE_HEIGHT / wallStripHeight) => 0 * (64 / 200)
+            //  0 * ( 0.32 ) = 0
             int textureOffsetY = distanceFromTop * ((float)TEXTURE_HEIGHT / wallStripHeight);
 
+            
             // set the color of the wall based on the color from the texture
             Uint32 texelColor = wallTexture[(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
             colorBuffer[(WINDOW_WIDTH * y) + i] = texelColor;
@@ -633,17 +698,22 @@ void render()
     SDL_RenderClear(renderer);
     //---
 
+    //---
+    // 3D projection operations
     generate3DProjection();
-
     renderColorBuffer();
-
     // set all color buffer values to black 
     clearColorBuffer(0xFF000000);    
+    //---
 
+    //---
+    // minimap
     renderMap();
     renderRays();
     renderPlayer();
+    //---
 
+    // execute render
     SDL_RenderPresent(renderer);
 }
 
