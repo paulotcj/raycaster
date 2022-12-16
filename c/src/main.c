@@ -634,17 +634,54 @@ void generate3DProjection()
             textureOffsetX = (int)rays[i].wallHitX % TEXTURE_WIDTH;        
         }
 
+        //Note: In the texture map, we found which column we are using with the help
+        //  of the variable textureOffsetX
+        // Now we need to map this to the Y axis. 
+
+        // int count = 0, readkey;
         // render the wall from wallTopPixel to wallBottomPixel
         for (int y = wallTopPixel; y < wallBottomPixel; y++) 
         {
             // calculate texture offset Y
-            //  suppose dist. from top = 200; wallStripHeight = 200; WINDOW_HEIGHT = 600; then we would
-            //  have: 200 + 100 - 300 = 300 - 300 = 0
-            int distanceFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
+            //  what we are trying to find here is the pixel in which we should start 'coloring'. It should be the
+            //  first pixel of the wallstrip. And since the wall strip is always centered in the screen we should go
+            //  something like the example below: (WINDOW_HEIGHT / 2) - (wallStripHeight / 2) => 
+            //  (832 / 2) - (123 / 2) = (416) - (61) = 355
+            //  And then if y = 0 we paint the pixel at index 0, y = 1 -> pixel at index 1 ...
 
-            // from the previous example: 0 * (TEXTURE_HEIGHT / wallStripHeight) => 0 * (64 / 200)
-            //  0 * ( 0.32 ) = 0
+
+            //int distanceFromTop = y + (wallStripHeight / 2) - (WINDOW_HEIGHT / 2);
+            int distanceFromTop = y - ((WINDOW_HEIGHT / 2) - (wallStripHeight / 2));
+
+            //typically: ((float)TEXTURE_HEIGHT / wallStripHeight) = 64 / 123 = 0.520325
+            // so for y=0,...,y=n =>  0 * 0.52 = 0 ; 1 * 0.52 = 0.52 ; 2 * 0.52 = 1.04 ; 3 * 0.52 = 1.560976
+            // and since textureOffsetY is int, the values will be 0 , 0, 1, 1 , 2 , .... (the values are rounded down)
             int textureOffsetY = distanceFromTop * ((float)TEXTURE_HEIGHT / wallStripHeight);
+
+            // if (count < 10)
+            // {
+            //     printf("\n----------------------\n");
+            //     //------
+            //     // printf("   wallStripHeight: %d  - wallStripHeight / 2: %d \n", wallStripHeight, (wallStripHeight / 2));
+            //     // printf("   WINDOW_HEIGHT: %d  - WINDOW_HEIGHT / 2: %d \n", WINDOW_HEIGHT, (WINDOW_HEIGHT / 2));
+            //     //------
+            //     // printf("   y: %d  - (wallStripHeight / 2) - (WINDOW_HEIGHT / 2): %d \n", y, ((wallStripHeight / 2) - (WINDOW_HEIGHT / 2)));
+            //     // printf("distanceFromTop: %d \n", distanceFromTop);
+            //     //------
+
+            //     printf("   distanceFromTop: %d , y: %d \n", distanceFromTop, y);
+            //     printf("   TEXTURE_HEIGHT: %d , wallStripHeight: %d\n", TEXTURE_HEIGHT,wallStripHeight);
+            //     printf("   ((float)TEXTURE_HEIGHT / wallStripHeight): %f  \n", ((float)TEXTURE_HEIGHT / wallStripHeight));
+            //     printf("   distanceFromTop * ((float)TEXTURE_HEIGHT / wallStripHeight): %f \n", (distanceFromTop * ((float)TEXTURE_HEIGHT / wallStripHeight)));
+            //     printf("textureOffsetY: %d \n",textureOffsetY);
+                
+            //     count++;
+            // }
+            // else
+            // {
+            //     getchar();
+            //     count = 0;
+            // }            
 
             
             // set the color of the wall based on the color from the texture
