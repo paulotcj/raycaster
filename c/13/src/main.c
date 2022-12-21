@@ -624,10 +624,6 @@ void generate3DProjection()
         // get the correct texture id number from the map content
         int texNum = rays[i].wallHitContent-1;
 
-        int texture_width = wallTextures[texNum].width;
-        int texture_height = wallTextures[texNum].height;
-
-
         //Note: In the texture map, we found which column we are using with the help
         //  of the variable textureOffsetX
         // Now we need to map this to the Y axis. 
@@ -650,7 +646,7 @@ void generate3DProjection()
             //typically: ((float)TEXTURE_HEIGHT / wallStripHeight) = 64 / 123 = 0.520325
             // so for y=0,...,y=n =>  0 * 0.52 = 0 ; 1 * 0.52 = 0.52 ; 2 * 0.52 = 1.04 ; 3 * 0.52 = 1.560976
             // and since textureOffsetY is int, the values will be 0 , 0, 1, 1 , 2 , .... (the values are rounded down)
-            int textureOffsetY = distanceFromTop * ((float)texture_height / wallStripHeight);
+            int textureOffsetY = distanceFromTop * ((float)TEXTURE_HEIGHT / wallStripHeight);
 
             // if (count < 10)
             // {
@@ -679,7 +675,7 @@ void generate3DProjection()
 
             
             // set the color of the wall based on the color from the texture
-            uint32_t texelColor = wallTextures[texNum].texture_buffer[(texture_width * textureOffsetY) + textureOffsetX];
+            uint32_t texelColor = wallTextures[texNum].texture_buffer[(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
             colorBuffer[(WINDOW_WIDTH * y) + i] = texelColor;
         }
 
