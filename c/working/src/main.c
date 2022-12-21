@@ -2,23 +2,27 @@
 #include <limits.h>
 #include <SDL2/SDL.h>
 #include "constants.h"
+#include "textures.h"
+
 
 const int map[MAP_NUM_ROWS][MAP_NUM_COLS] = {
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1, 1}, // 0 
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 1
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 2
-    {1, 0, 0, 0, 1, 0, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 7, 0, 0, 1}, // 3
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 4
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 1}, // 5
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // 6
-    {1, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1}, // 7
-    {1, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 2, 0, 0, 1}, // 8
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 9
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 10
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 11
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}  // 12 (13 rows)
-  // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,20 (21 columns)  
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 ,1, 1, 1, 1, 1, 1, 1}, // 0
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1}, // 1
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 1}, // 2
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 3
+    {1, 0, 0, 0, 2, 2, 0, 3, 0, 4, 0, 5, 0, 6, 0, 0, 0, 0, 0, 1}, // 4
+    {1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 5
+    {1, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1}, // 6
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 1}, // 7
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5}, // 8
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 9
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 10
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 11
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5}  // 12
+  // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,20 (21 columns) 
 };
+
+
 
 struct Player
 {
@@ -56,7 +60,7 @@ int ticksLastFrame;
 //---
 Uint32* colorBuffer = NULL;
 SDL_Texture* colorBufferTexture;
-Uint32* wallTexture = NULL;
+Uint32* textures[NUM_TEXTURES];
 //---
 
 //-------------------------------------------
@@ -99,7 +103,6 @@ int initializeWindow()
 
 void destroyWindow() 
 {
-    free(wallTexture);
     free(colorBuffer);
     SDL_DestroyTexture(colorBufferTexture);
 
@@ -141,18 +144,16 @@ void setup()
         WINDOW_HEIGHT
     );
 
-    // manually create a blue texture with black pixels in every x & y multiples of 8
-    wallTexture = (Uint32*)malloc( sizeof(Uint32) * TEXTURE_WIDTH * TEXTURE_HEIGHT );
-    
-    //create a texture
-    for (int x = 0; x < TEXTURE_WIDTH; x++) 
-    {
-        for (int y = 0; y < TEXTURE_HEIGHT; y++) 
-        {
-            //0x????????=> 0x(00),(00),(00),(00) => 0x(alpha)(red)(gree)(blue)
-            wallTexture[TEXTURE_WIDTH * y + x] = (x % 8 && y % 8) ? 0xFF0000FF : 0xFF000000;
-        }
-    }    
+    //---------------------
+    // load some textures from the textures.h
+    textures[0] = (Uint32*) REDBRICK_TEXTURE;
+    textures[1] = (Uint32*) PURPLESTONE_TEXTURE;
+    textures[2] = (Uint32*) MOSSYSTONE_TEXTURE;
+    textures[3] = (Uint32*) GRAYSTONE_TEXTURE;
+    textures[4] = (Uint32*) COLORSTONE_TEXTURE;
+    textures[5] = (Uint32*) BLUESTONE_TEXTURE;
+    textures[6] = (Uint32*) WOOD_TEXTURE;
+    textures[7] = (Uint32*) EAGLE_TEXTURE;
     //----------------------
 
 }
@@ -451,7 +452,7 @@ void renderMap()
             int tileY = i * TILE_SIZE;
             int tileColor = map[i][j] != 0 ? 255 : 0;
 
-            
+            SDL_SetRenderDrawColor(renderer, tileColor, tileColor, tileColor, 255);
             SDL_Rect mapTileRect = 
             {
                 tileX     * MINIMAP_SCALE_FACTOR,
@@ -459,16 +460,7 @@ void renderMap()
                 TILE_SIZE * MINIMAP_SCALE_FACTOR,
                 TILE_SIZE * MINIMAP_SCALE_FACTOR
             };
-
-
-
-            SDL_SetRenderDrawColor(renderer, tileColor, tileColor, tileColor, 255);
-            SDL_RenderFillRect(renderer , &mapTileRect);
-
-            SDL_SetRenderDrawColor(renderer, 0, 100, 100, 255);
-            SDL_RenderDrawRect(renderer, &mapTileRect);
-
-
+            SDL_RenderFillRect(renderer, &mapTileRect);
         }
     }
 
@@ -619,7 +611,7 @@ void generate3DProjection()
             // then: (1280 * 2) + 0 = 2560.
             // As you can see, we are working basically as a scanline, when we set the 1st pixel we need to
             //  jump an entire window width in order to reach the next pixel to colour
-            colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF333333;        
+            colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF444444;      
         }
 
         // calculate texture offset X
@@ -627,12 +619,15 @@ void generate3DProjection()
         int textureOffsetX;
         if (rays[i].wasHitVertical)
         {
-            textureOffsetX = (int)rays[i].wallHitY % TEXTURE_HEIGHT;
+            textureOffsetX = (int)rays[i].wallHitY % TILE_SIZE;
         }
         else
         {
-            textureOffsetX = (int)rays[i].wallHitX % TEXTURE_WIDTH;        
+            textureOffsetX = (int)rays[i].wallHitX % TILE_SIZE;        
         }
+
+        // get the correct texture id number from the map content
+        int texNum = rays[i].wallHitContent-1;
 
         //Note: In the texture map, we found which column we are using with the help
         //  of the variable textureOffsetX
@@ -685,14 +680,14 @@ void generate3DProjection()
 
             
             // set the color of the wall based on the color from the texture
-            Uint32 texelColor = wallTexture[(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
+            Uint32 texelColor = textures[texNum][(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
             colorBuffer[(WINDOW_WIDTH * y) + i] = texelColor;
         }
 
         // set the color of the floor
         for (int y = wallBottomPixel; y < WINDOW_HEIGHT; y++)
         {
-            colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF777777;
+            colorBuffer[(WINDOW_WIDTH * y) + i] = 0xFF888888;
         }
     }
 }
