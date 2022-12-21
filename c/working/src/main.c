@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdint.h>
 #include <limits.h>
 #include <SDL2/SDL.h>
 #include "constants.h"
@@ -16,7 +17,7 @@ const int map[MAP_NUM_ROWS][MAP_NUM_COLS] = {
     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 0, 0, 0, 0, 0, 1}, // 7
     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5}, // 8
     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 9
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 10
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 10
     {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 5}, // 11
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 5, 5, 5, 5, 5, 5}  // 12
   // 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10,11,12,13,14,15,16,17,18,20 (21 columns) 
@@ -58,9 +59,9 @@ int isGameRunning = FALSE;
 int ticksLastFrame;
 
 //---
-Uint32* colorBuffer = NULL;
+uint32_t* colorBuffer = NULL;
 SDL_Texture* colorBufferTexture;
-Uint32* textures[NUM_TEXTURES];
+uint32_t* textures[NUM_TEXTURES];
 //---
 
 //-------------------------------------------
@@ -103,6 +104,7 @@ int initializeWindow()
 
 void destroyWindow() 
 {
+    freeWallTextures();
     free(colorBuffer);
     SDL_DestroyTexture(colorBufferTexture);
 
@@ -132,13 +134,13 @@ void setup()
     //----------------------
     //color and texture
     // allocate the total amount of bytes in memory to hold our colorbuffer
-    // colorBuffer = Uint32 * 1280 * 832 = 1,064,960
-    colorBuffer = (Uint32*)malloc(sizeof(Uint32) * WINDOW_WIDTH * WINDOW_HEIGHT);
+    // colorBuffer = uint32_t * 1280 * 832 = 1,064,960
+    colorBuffer = (uint32_t*)malloc(sizeof(uint32_t) * WINDOW_WIDTH * WINDOW_HEIGHT);
 
     // create an SDL_Texture to display the colorbuffer
     colorBufferTexture = SDL_CreateTexture(
         renderer,
-        SDL_PIXELFORMAT_ARGB8888,
+        SDL_PIXELFORMAT_RGBA32,
         SDL_TEXTUREACCESS_STREAMING,
         WINDOW_WIDTH,
         WINDOW_HEIGHT
@@ -146,14 +148,7 @@ void setup()
 
     //---------------------
     // load some textures from the textures.h
-    textures[0] = (Uint32*) REDBRICK_TEXTURE;
-    textures[1] = (Uint32*) PURPLESTONE_TEXTURE;
-    textures[2] = (Uint32*) MOSSYSTONE_TEXTURE;
-    textures[3] = (Uint32*) GRAYSTONE_TEXTURE;
-    textures[4] = (Uint32*) COLORSTONE_TEXTURE;
-    textures[5] = (Uint32*) BLUESTONE_TEXTURE;
-    textures[6] = (Uint32*) WOOD_TEXTURE;
-    textures[7] = (Uint32*) EAGLE_TEXTURE;
+    loadWallTextures();
     //----------------------
 
 }
@@ -466,16 +461,16 @@ void renderMap()
 
     //------------------
     //test coordinates - start
-    SDL_Rect mapTileRect2 = 
-    {
-        0 + 800, //x
-        0 + 200 ,//y
-        TILE_SIZE, //width
-        TILE_SIZE  //height
-    };
+    // SDL_Rect mapTileRect2 = 
+    // {
+    //     0 + 800, //x
+    //     0 + 200 ,//y
+    //     TILE_SIZE, //width
+    //     TILE_SIZE  //height
+    // };
 
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_RenderFillRect(renderer , &mapTileRect2);
+    // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    // SDL_RenderFillRect(renderer , &mapTileRect2);
 
     //test coordinates - end
     //------------------
@@ -680,7 +675,7 @@ void generate3DProjection()
 
             
             // set the color of the wall based on the color from the texture
-            Uint32 texelColor = textures[texNum][(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
+            uint32_t texelColor = wallTextures[texNum].texture_buffer[(TEXTURE_WIDTH * textureOffsetY) + textureOffsetX];
             colorBuffer[(WINDOW_WIDTH * y) + i] = texelColor;
         }
 
@@ -693,7 +688,7 @@ void generate3DProjection()
 }
 
 
-void clearColorBuffer(Uint32 color) 
+void clearColorBuffer(uint32_t color) 
 {
     for (int x = 0; x < WINDOW_WIDTH; x++)
     {
@@ -711,7 +706,7 @@ void renderColorBuffer()
         colorBufferTexture, //texture
         NULL,               //sdl rect - represents the are to update
         colorBuffer,        //raw pixel data
-        (int)(WINDOW_WIDTH * sizeof(Uint32)) //pitch - number of bytes in a row of pixel data
+        (int)(WINDOW_WIDTH * sizeof(uint32_t)) //pitch - number of bytes in a row of pixel data
     );
 
     //Copy a portion of the texture to the current rendering target
