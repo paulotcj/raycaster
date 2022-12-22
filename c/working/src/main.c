@@ -186,10 +186,12 @@ void movePlayer(float deltaTime)
 void renderPlayer()
 {
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    //note -10 is the offset the player position to the center of the square
+    // given that the player.width and height is typically 20
     SDL_Rect playerRect = 
     {
-        player.x * MINIMAP_SCALE_FACTOR,
-        player.y * MINIMAP_SCALE_FACTOR,
+        (player.x-10) * MINIMAP_SCALE_FACTOR,
+        (player.y-10) * MINIMAP_SCALE_FACTOR,
         player.width * MINIMAP_SCALE_FACTOR,
         player.height * MINIMAP_SCALE_FACTOR
     };
@@ -419,6 +421,7 @@ void castRay(float rayAngle, int stripId)
 
 }
 
+
 void castAllRays()
 {
     // start first ray subtracting half of the FOV
@@ -430,10 +433,28 @@ void castAllRays()
     float rayAngle = player.rotationAngle - (FOV_ANGLE / 2);
 
     // loop all columns casting the rays
-    for(int stripID = 0 ; stripID < NUM_RAYS ; stripID++)
+    for(int col = 0 ; col < NUM_RAYS ; col++)
     {
-        castRay(rayAngle, stripID);
-        rayAngle += FOV_ANGLE / NUM_RAYS;
+        //castRay(rayAngle, stripID);
+        //rayAngle += FOV_ANGLE / NUM_RAYS;
+
+        //If we assume a constant angle between arrays we will end up with a distorted view. In order to
+        // render it straight we need to assume that the space between rays hitting the walls is equal
+        // so each ray angle is different and we need to find this angle.
+        // Note: arc tan = atan -> finds the angle based on triangle's sides
+        //  tan(x) = Opp/Adj    atan(Opp/Adj) = x
+        // in our example: atan(pixel columns / distance proj plane) = angle
+        // with NUM_RAYS = 1280; NUM_RAYS/2 = 640; the expression: col - NUM_RAYS/2 ranges from -640 to +640
+        // and DIST_PROJ_PLANE = 1108.512518
+        // Therefore, the result of the expression: atan((col - NUM_RAYS/2) / DIST_PROJ_PLANE) yields different
+        //  increments of angles per ray. For instance some diffs: 0.000814 , 0.000821 , 0.000885 , 0.000687
+        //  The actual angles could be in the range: -0.5235987751467682 to 0.5235987751467682
+        //  
+
+        //printf("NUM_RAYS: %d  ,  NUM_RAYS/2: %d  ,  col: %d \n",NUM_RAYS, (NUM_RAYS/2), col);
+        //printf("atan((col - NUM_RAYS/2) / DIST_PROJ_PLANE): %f\n", atan((col - NUM_RAYS/2) / DIST_PROJ_PLANE));
+        float rayAngle = player.rotationAngle + atan((col - NUM_RAYS/2) / DIST_PROJ_PLANE);
+        castRay(rayAngle, col);
     }
 }
 
@@ -571,13 +592,13 @@ void generate3DProjection()
         //   note: we are trying to calculate the distance or the adjacent side of a 90deg triangle
         //    we have the angle and we have the opposite size (WINDOW_WIDTH / 2), so the formula is:
         //    adj = opp/tan(x)        
-        float distanceProjPlane = (WINDOW_WIDTH / 2) / tan(FOV_ANGLE / 2);
+        //float distanceProjPlane = (WINDOW_WIDTH / 2) / tan(FOV_ANGLE / 2);
 
         // projected wall height
         //  the equality formula is: 'actual wall height'/'distance to wall' = 'projected wall height'/'distance form player to proj. plane'
         //  since we want to find 'projected wall height', we reorganize the equation to:
         //   'projected wall height' = 'actual wall height'/'distance to wall' * 'distance form player to proj. plane'        
-        float projectedWallHeight = (TILE_SIZE / perpDistance) * distanceProjPlane;
+        float projectedWallHeight = (TILE_SIZE / perpDistance) * DIST_PROJ_PLANE;
 
         int wallStripHeight = (int)projectedWallHeight;
 
