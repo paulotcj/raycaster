@@ -1,6 +1,3 @@
-#define FALSE 0
-#define TRUE 1
-
 #define PI 3.14159265
 #define TWO_PI 6.28318530
 #define TILE_SIZE 64
