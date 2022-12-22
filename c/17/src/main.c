@@ -585,8 +585,7 @@ void render(void)
     clearColorBuffer(0xFF000000);    
     //---
 
-    renderWallProjection();
-    
+
     //---
     // minimap
     renderMap();
