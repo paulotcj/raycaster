@@ -4,6 +4,7 @@
 #include <limits.h>
 #include <SDL2/SDL.h>
 #include "constants.h"
+#include "graphics.h"
 #include "texture.h"
 
 
@@ -50,76 +51,20 @@ struct Ray
     int wallHitContent;
 } rays[NUM_RAYS];
 
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
+
 int isGameRunning = false;
 int ticksLastFrame;
 
-//---
-uint32_t* colorBuffer = NULL;
-SDL_Texture* colorBufferTexture;
-uint32_t* textures[NUM_TEXTURES];
-//---
-
-//-------------------------------------------
-
-// SDL stuff - start
-bool initializeWindow() 
-{
-    if (SDL_Init(SDL_INIT_EVERYTHING) != 0) 
-    {
-        fprintf(stderr, "Error initializing SDL.\n");
-        return false;
-    }
-
-    SDL_DisplayMode display_mode;
-    SDL_GetCurrentDisplayMode(0, &display_mode);
-    int fullScreenWidth = display_mode.w;
-    int fullScreenHeight = display_mode.h;
 
 
-    window = SDL_CreateWindow
-    (
-        NULL,
-        SDL_WINDOWPOS_CENTERED,
-        SDL_WINDOWPOS_CENTERED,
-        fullScreenWidth,
-        fullScreenHeight,
-        SDL_WINDOW_BORDERLESS
-    );
 
-    if (!window) 
-    {
-        fprintf(stderr, "Error creating SDL window.\n");
-        return false;
-    }
 
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    
-    if (!renderer) 
-    {
-        fprintf(stderr, "Error creating SDL renderer.\n");
-        return false;
-    }
-    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-    return true;
-}
 
-void destroyWindow() 
-{
-    freeWallTextures();
-    free(colorBuffer);
-    SDL_DestroyTexture(colorBufferTexture);
-
-    SDL_DestroyRenderer(renderer);
-    SDL_DestroyWindow(window);
-    SDL_Quit();
-}
 
 // SDL stuff - END
 //-------------------------------------------
 
-void setup() 
+void setup(void) 
 {
     //----------------------
     //player setup
@@ -134,20 +79,6 @@ void setup()
     player.turnSpeed = 45 * (PI / 180); // 45 * 0.01745 = 0.785398163397448
     //----------------------
 
-    //----------------------
-    //color and texture
-    // allocate the total amount of bytes in memory to hold our colorbuffer
-    // colorBuffer = uint32_t * 1280 * 832 = 1,064,960
-    colorBuffer = (uint32_t*)malloc(sizeof(uint32_t) * WINDOW_WIDTH * WINDOW_HEIGHT);
-
-    // create an SDL_Texture to display the colorbuffer
-    colorBufferTexture = SDL_CreateTexture(
-        renderer,
-        SDL_PIXELFORMAT_RGBA32,
-        SDL_TEXTUREACCESS_STREAMING,
-        WINDOW_WIDTH,
-        WINDOW_HEIGHT
-    );
 
     //---------------------
     // load some textures from the textures.h
@@ -186,29 +117,29 @@ void movePlayer(float deltaTime)
     }
 }
 
-void renderPlayer()
+void renderPlayer(void)
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    //note -10 is the offset the player position to the center of the square
-    // given that the player.width and height is typically 20
-    SDL_Rect playerRect = 
-    {
-        (player.x-10) * MINIMAP_SCALE_FACTOR,
-        (player.y-10) * MINIMAP_SCALE_FACTOR,
-        player.width * MINIMAP_SCALE_FACTOR,
-        player.height * MINIMAP_SCALE_FACTOR
-    };
-    SDL_RenderFillRect(renderer, &playerRect);
+    // SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    // //note -10 is the offset the player position to the center of the square
+    // // given that the player.width and height is typically 20
+    // SDL_Rect playerRect = 
+    // {
+    //     (player.x-10) * MINIMAP_SCALE_FACTOR,
+    //     (player.y-10) * MINIMAP_SCALE_FACTOR,
+    //     player.width * MINIMAP_SCALE_FACTOR,
+    //     player.height * MINIMAP_SCALE_FACTOR
+    // };
+    // SDL_RenderFillRect(renderer, &playerRect);
 
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_RenderDrawLine
-    (
-        renderer,
-        MINIMAP_SCALE_FACTOR * player.x,
-        MINIMAP_SCALE_FACTOR * player.y,
-        MINIMAP_SCALE_FACTOR * player.x + cos(player.rotationAngle) * 15,
-        MINIMAP_SCALE_FACTOR * player.y + sin(player.rotationAngle) * 15
-    );
+    // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    // SDL_RenderDrawLine
+    // (
+    //     renderer,
+    //     MINIMAP_SCALE_FACTOR * player.x,
+    //     MINIMAP_SCALE_FACTOR * player.y,
+    //     MINIMAP_SCALE_FACTOR * player.x + cos(player.rotationAngle) * 15,
+    //     MINIMAP_SCALE_FACTOR * player.y + sin(player.rotationAngle) * 15
+    // );
 }
 
 float normalizeAngle(float angle)
@@ -422,7 +353,7 @@ void castRay(float rayAngle, int stripId)
 }
 
 
-void castAllRays()
+void castAllRays(void)
 {
     // start first ray subtracting half of the FOV
     //  note: we are tying to find the angle of the first ray, so if the player has a field of view of 60deg
@@ -458,27 +389,27 @@ void castAllRays()
     }
 }
 
-void renderMap()
+void renderMap(void)
 {
-    for(int i = 0; i < MAP_NUM_ROWS; i++)
-    {
-        for(int j = 0; j < MAP_NUM_COLS; j++)
-        {
-            int tileX = j * TILE_SIZE;
-            int tileY = i * TILE_SIZE;
-            int tileColor = map[i][j] != 0 ? 255 : 0;
+    // for(int i = 0; i < MAP_NUM_ROWS; i++)
+    // {
+    //     for(int j = 0; j < MAP_NUM_COLS; j++)
+    //     {
+    //         int tileX = j * TILE_SIZE;
+    //         int tileY = i * TILE_SIZE;
+    //         int tileColor = map[i][j] != 0 ? 255 : 0;
 
-            SDL_SetRenderDrawColor(renderer, tileColor, tileColor, tileColor, 255);
-            SDL_Rect mapTileRect = 
-            {
-                tileX     * MINIMAP_SCALE_FACTOR,
-                tileY     * MINIMAP_SCALE_FACTOR,
-                TILE_SIZE * MINIMAP_SCALE_FACTOR,
-                TILE_SIZE * MINIMAP_SCALE_FACTOR
-            };
-            SDL_RenderFillRect(renderer, &mapTileRect);
-        }
-    }
+    //         SDL_SetRenderDrawColor(renderer, tileColor, tileColor, tileColor, 255);
+    //         SDL_Rect mapTileRect = 
+    //         {
+    //             tileX     * MINIMAP_SCALE_FACTOR,
+    //             tileY     * MINIMAP_SCALE_FACTOR,
+    //             TILE_SIZE * MINIMAP_SCALE_FACTOR,
+    //             TILE_SIZE * MINIMAP_SCALE_FACTOR
+    //         };
+    //         SDL_RenderFillRect(renderer, &mapTileRect);
+    //     }
+    // }
 
     //------------------
     //test coordinates - start
@@ -498,22 +429,22 @@ void renderMap()
 }
 
 
-void renderRays() 
+void renderRays(void) 
 {
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
-    for (int i = 0; i < NUM_RAYS; i++) 
-    {
-        SDL_RenderDrawLine(
-            renderer,
-            MINIMAP_SCALE_FACTOR * player.x,
-            MINIMAP_SCALE_FACTOR * player.y,
-            MINIMAP_SCALE_FACTOR * rays[i].wallHitX,
-            MINIMAP_SCALE_FACTOR * rays[i].wallHitY
-        );
-    }
+    // SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    // for (int i = 0; i < NUM_RAYS; i++) 
+    // {
+    //     SDL_RenderDrawLine(
+    //         renderer,
+    //         MINIMAP_SCALE_FACTOR * player.x,
+    //         MINIMAP_SCALE_FACTOR * player.y,
+    //         MINIMAP_SCALE_FACTOR * rays[i].wallHitX,
+    //         MINIMAP_SCALE_FACTOR * rays[i].wallHitY
+    //     );
+    // }
 }
 
-void processInput() 
+void processInput(void) 
 {
     SDL_Event event;
     SDL_PollEvent(&event);
@@ -544,7 +475,7 @@ void processInput()
     }
 }
 
-void update() 
+void update(void) 
 {
     // Compute how long we have until the reach the target frame time in milliseconds
     // while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
@@ -571,7 +502,7 @@ void update()
     castAllRays();
 }
 
-void generate3DProjection() 
+void renderWallProjection(void) 
 {
     for (int x = 0; x < NUM_RAYS; x++) 
     {
@@ -629,7 +560,7 @@ void generate3DProjection()
             // then: (1280 * 2) + 0 = 2560.
             // As you can see, we are working basically as a scanline, when we set the 1st pixel we need to
             //  jump an entire window width in order to reach the next pixel to colour
-            colorBuffer[(WINDOW_WIDTH * y) + x] = 0xFF444444;      
+            drawPixel(x, y, 0xFF444444);      
         }
 
         // calculate texture offset X
@@ -703,75 +634,44 @@ void generate3DProjection()
             
             // set the color of the wall based on the color from the texture
             uint32_t texelColor = wallTextures[texNum].texture_buffer[(texture_width * textureOffsetY) + textureOffsetX];
-            colorBuffer[(WINDOW_WIDTH * y) + x] = texelColor;
+            drawPixel(x, y, texelColor);
         }
 
         // set the color of the floor
         for (int y = wallBottomPixel; y < WINDOW_HEIGHT; y++)
         {
-            colorBuffer[(WINDOW_WIDTH * y) + x] = 0xFF888888;
+            drawPixel(x, y, 0xFF888888);
         }
     }
 }
 
 
-void clearColorBuffer(uint32_t color) 
+
+
+
+
+void render(void) 
 {
-    for (int i = 0; i < WINDOW_WIDTH; i++)
-    {
-        for (int y = 0; y < WINDOW_HEIGHT; y++)
-        {
-            colorBuffer[(WINDOW_WIDTH * y) + i] = color;
-        }
-    }
-}
-
-void renderColorBuffer() 
-{
-    //Update the given texture rectangle with new pixel data
-    SDL_UpdateTexture(
-        colorBufferTexture, //texture
-        NULL,               //sdl rect - represents the are to update
-        colorBuffer,        //raw pixel data
-        (int)(WINDOW_WIDTH * sizeof(uint32_t)) //pitch - number of bytes in a row of pixel data
-    );
-
-    //Copy a portion of the texture to the current rendering target
-    SDL_RenderCopy(
-        renderer, 
-        colorBufferTexture, 
-        NULL, 
-        NULL);
-}
-
-void render() 
-{
-    //---
-    //set clear color and clear frame
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    //---
-
-    //---
-    // 3D projection operations
-    generate3DProjection();
-    renderColorBuffer();
     // set all color buffer values to black 
     clearColorBuffer(0xFF000000);    
     //---
 
     //---
     // minimap
-    renderMap();
-    renderRays();
-    renderPlayer();
+    // renderMap();
+    // renderRays();
+    // renderPlayer();
     //---
 
-    // execute render
-    SDL_RenderPresent(renderer);
+    renderColorBuffer();
 }
 
-int main() 
+void releaseResources(void) {
+    freeWallTextures();
+    destroyWindow();
+}
+
+int main(int argc, char* argv[]) 
 {
     isGameRunning = initializeWindow();
 
@@ -785,7 +685,7 @@ int main()
         render();
     }
 
-    destroyWindow();
+    releaseResources();
 
     return 0;
 }

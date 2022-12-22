@@ -2,6 +2,7 @@
     "files.associations": {
         "ios": "c",
         "istream": "c",
-        "locale": "c"
+        "locale": "c",
+        "graphics.h": "c"
     }
 }

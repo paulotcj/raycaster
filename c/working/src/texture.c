@@ -1,5 +1,5 @@
 #include "texture.h"
-#include <stdio.h>
+
 
 static const char* textureFileNames[NUM_TEXTURES] = 
 {
@@ -15,7 +15,7 @@ static const char* textureFileNames[NUM_TEXTURES] =
 
 //-----
 
-void loadWallTextures()
+void loadWallTextures(void)
 {
     for(int i = 0 ; i < NUM_TEXTURES ; i++)
     {
@@ -39,7 +39,7 @@ void loadWallTextures()
 
 
 //-------
-void freeWallTextures()
+void freeWallTextures(void)
 {
     for(int i = 0 ; i < NUM_TEXTURES ; i++)
     {
