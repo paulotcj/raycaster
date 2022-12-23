@@ -2,10 +2,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "constants.h"
-#include "graphics.h"
-#include "map.h"
-#include "player.h"
-#include "ray.h"
+//#include "graphics.h"
+//#include "map.h"
+//#include "player.h"
+//#include "ray.h"
 #include "wall.h"
 //#include "texture.h"
 
