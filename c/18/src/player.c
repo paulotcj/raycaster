@@ -55,19 +55,11 @@ void renderPlayer(void)
 
 
     drawRect(    
-        (player.x-10) * MINIMAP_SCALE_FACTOR,
-        (player.y-10) * MINIMAP_SCALE_FACTOR,
+        player.x * MINIMAP_SCALE_FACTOR,
+        player.y * MINIMAP_SCALE_FACTOR,
         player.width * MINIMAP_SCALE_FACTOR,
         player.height * MINIMAP_SCALE_FACTOR,
         0xFFFF0000
-    );
-
-    drawLine(
-        MINIMAP_SCALE_FACTOR * player.x,
-        MINIMAP_SCALE_FACTOR * player.y,
-        MINIMAP_SCALE_FACTOR * player.x + cos(player.rotationAngle) * 15,
-        MINIMAP_SCALE_FACTOR * player.y + sin(player.rotationAngle) * 15,
-        0xFF00FF00
     );
 
 

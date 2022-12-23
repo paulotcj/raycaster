@@ -251,7 +251,7 @@ void render(void)
     //---
     // minimap
     renderMap();
-    renderRays();
+    // renderRays();
     renderPlayer();
     //---
 

@@ -3,7 +3,6 @@
 
 #include <stdbool.h>
 #include "constants.h"
-#include "graphics.h"
 #include "player.h"
 
 typedef struct {
