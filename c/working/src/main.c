@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <SDL2/SDL.h>
 #include "constants.h"
 #include "graphics.h"
 #include "map.h"
@@ -10,19 +9,8 @@
 #include "wall.h"
 #include "texture.h"
 
-
-
-int isGameRunning = false;
+bool isGameRunning = false;
 int ticksLastFrame;
-
-
-
-
-
-
-
-// SDL stuff - END
-//-------------------------------------------
 
 void setup(void) 
 {

@@ -128,7 +128,7 @@ void renderWallProjection(void)
 
             
             // set the color of the wall based on the color from the texture
-            uint32_t texelColor = wallTextures[texNum].texture_buffer[(texture_width * textureOffsetY) + textureOffsetX];
+            color_t texelColor = wallTextures[texNum].texture_buffer[(texture_width * textureOffsetY) + textureOffsetX];
             drawPixel(x, y, texelColor);
         }
 
