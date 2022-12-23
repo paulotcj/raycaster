@@ -6,6 +6,8 @@
 #include "constants.h"
 #include "upng.h"
 
+#define NUM_TEXTURES 8
+
 typedef struct
 {
     upng_t* upngTexture;
