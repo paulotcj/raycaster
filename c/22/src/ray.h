@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <limits.h>
-#include "defs.h"
+#include "constants.h"
 #include "graphics.h"
 #include "player.h"
 

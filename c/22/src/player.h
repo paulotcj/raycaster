@@ -1,7 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "defs.h"
+#include "constants.h"
 #include "graphics.h"
 #include "map.h"
 

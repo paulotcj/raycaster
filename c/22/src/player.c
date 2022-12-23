@@ -3,11 +3,11 @@
 player_t player = {
     .x = WINDOW_WIDTH / 2,
     .y = WINDOW_HEIGHT / 2,
-    .width = 1,
-    .height = 1,
+    .width = 20,
+    .height = 20,
     .turnDirection = 0, // -1 if left, +1 if right
     .walkDirection = 0, // -1 if back, +1 if front
-    .rotationAngle = PI / 2,
+    .rotationAngle = PI, //start looking left
     .walkSpeed = 100,
     .turnSpeed = 45 * (PI / 180) // 45 * 0.01745 = 0.785398163397448
 };
@@ -55,11 +55,19 @@ void renderPlayer(void)
 
 
     drawRect(    
-        player.x * MINIMAP_SCALE_FACTOR,
-        player.y * MINIMAP_SCALE_FACTOR,
+        (player.x-10) * MINIMAP_SCALE_FACTOR,
+        (player.y-10) * MINIMAP_SCALE_FACTOR,
         player.width * MINIMAP_SCALE_FACTOR,
         player.height * MINIMAP_SCALE_FACTOR,
-        0xFFFFFFFF
+        0xFFFF0000
+    );
+
+    drawLine(
+        MINIMAP_SCALE_FACTOR * player.x,
+        MINIMAP_SCALE_FACTOR * player.y,
+        MINIMAP_SCALE_FACTOR * player.x + cos(player.rotationAngle) * 15,
+        MINIMAP_SCALE_FACTOR * player.y + sin(player.rotationAngle) * 15,
+        0xFF00FF00
     );
 
 

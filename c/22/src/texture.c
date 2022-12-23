@@ -1,5 +1,6 @@
 #include "texture.h"
 
+texture_t wallTextures[NUM_TEXTURES];
 
 static const char* textureFileNames[NUM_TEXTURES] = 
 {

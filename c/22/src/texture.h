@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdint.h>
-#include "defs.h"
+#include "constants.h"
 #include "upng.h"
 
 #define NUM_TEXTURES 8
@@ -16,7 +16,7 @@ typedef struct
     upng_t* upngTexture;
 } texture_t;
 
-texture_t wallTextures[NUM_TEXTURES];
+extern texture_t wallTextures[NUM_TEXTURES];
 
 void loadWallTextures(void);
 void freeWallTextures(void);

@@ -2,7 +2,7 @@
 #define WALL_H
 
 #include <math.h>
-#include "defs.h"
+#include "constants.h"
 #include "player.h"
 #include "ray.h"
 #include "graphics.h"

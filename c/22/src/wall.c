@@ -1,5 +1,24 @@
 #include "wall.h"
 
+// Change the color intensity based on a factor value between 0 and 1
+void changeColorIntensity(color_t* color, float factor) 
+{
+    // The code below is just a mask the will extract the information regarding each component
+    //  of the colour. The color is in the format 0xAARRGGBB.
+    // For instance take the following colour: 0x55000000 -> alpha = 0x55 r=0x00 g=0x00 b=0x00 ->
+    //  it's black with alpha component of 85. If we pass this number through a bitwise AND operator
+    //  we will get: 0x55000000 & 0xFF000000 = 0x55000000, but if we had the random number 0x55112233
+    //  and use the AND bitwise operator we would get: 0x55112233 & 0xFF000000 = 0x55000000
+    color_t a = (*color & 0xFF000000);
+    color_t r = (*color & 0x00FF0000) * factor;
+    color_t g = (*color & 0x0000FF00) * factor;
+    color_t b = (*color & 0x000000FF) * factor;
+
+    // e.g.: 0x0f = 15, 0xf0 = 240 and 0x0f | 0xf0 = 255 which is 0xff ; and the same principle
+    // applies below
+    *color = a | (r & 0x00FF0000) | (g & 0x0000FF00) | (b & 0x000000FF);
+}
+
 void renderWallProjection(void) 
 {
     for (int x = 0; x < NUM_RAYS; x++) 
@@ -129,6 +148,14 @@ void renderWallProjection(void)
             
             // set the color of the wall based on the color from the texture
             color_t texelColor = wallTextures[texNum].texture_buffer[(texture_width * textureOffsetY) + textureOffsetX];
+            
+            // Make the pixel color darker if the ray hit was vertical
+            if (rays[x].wasHitVertical) {
+                changeColorIntensity(&texelColor, 0.7);
+            }            
+            
+            
+            
             drawPixel(x, y, texelColor);
         }
 
