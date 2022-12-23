@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "constants.h"
+//#include "constants.h"
 //#include "graphics.h"
 //#include "map.h"
 //#include "player.h"
