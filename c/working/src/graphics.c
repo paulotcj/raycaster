@@ -121,19 +121,31 @@ void drawRect(int x, int y, int width, int height, color_t color)
 
 
 //test this
+
 void drawLine(int x0, int y0, int x1, int y1, color_t color) 
 {
+    // e.g.: x0 = 3 , y0 = 4, x1 = 11, y1 = 13
+
+    //(x1 - x0) = (11-3) = 8
+    //(y1 - y0) - (13-4) = 9
     int deltaX = (x1 - x0);
     int deltaY = (y1 - y0);
 
+    //in this example longestSideLength = 9
     int longestSideLength = (abs(deltaX) >= abs(deltaY)) ? abs(deltaX) : abs(deltaY);
 
+    //in this example: xIncrement = 8/9 = 0.888888   ,  yIncrement = 9/9 = 1
     float xIncrement = deltaX / (float)longestSideLength;
     float yIncrement = deltaY / (float)longestSideLength;
 
     float currentX = x0;
     float currentY = y0;
 
+    // risking sound obvious, the longestSideLength is the longest side on either axis, so we
+    //  step pixel by pixel. On the longest side we are going to step one full pixel in the direction of
+    //  the end of the line and paint it, and the shortest lenght will use the proportional increment
+    //  of its own axis (e.g.: 0.1 , 0.534, 0.9333), and then we will paint it using the nearest
+    //  pixel coordinate (using round function)
     for (int i = 0; i < longestSideLength; i++) 
     {
         drawPixel(round(currentX), round(currentY), color);
