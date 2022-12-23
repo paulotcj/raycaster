@@ -7,7 +7,7 @@
 #include "player.h"
 #include "ray.h"
 #include "wall.h"
-#include "texture.h"
+//#include "texture.h"
 
 bool isGameRunning = false;
 int ticksLastFrame;
