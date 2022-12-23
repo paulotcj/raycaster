@@ -2,21 +2,22 @@
 #include <stdint.h>
 #include <stdbool.h>
 //#include "constants.h"
-//#include "graphics.h"
-//#include "map.h"
-//#include "player.h"
-//#include "ray.h"
+#include "graphics.h"
+#include "map.h"
+#include "player.h"
+#include "ray.h"
 #include "wall.h"
-//#include "texture.h"
+#include "sprite.h"
+#include "texture.h"
 
 bool isGameRunning = false;
-int ticksLastFrame;
+int ticksLastFrame = 0;
 
 void setup(void) 
 {
     //---------------------
     // load some textures from the textures.h
-    loadWallTextures();
+    loadTextures();
     //----------------------
 }
 
@@ -55,18 +56,18 @@ void processInput(void)
 
 void update(void) 
 {
-    // Compute how long we have until the reach the target frame time in milliseconds
-    // while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
-
-
     // // Compute how long we have until the reach the target frame time in milliseconds
-    int timeToWait = FRAME_TIME_LENGTH - ( SDL_GetTicks() - ticksLastFrame );
+    // // while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
 
-    // Only delay execution if we are running too fast
-    if( timeToWait > 0 && timeToWait <= FRAME_TIME_LENGTH)
-    { 
-        SDL_Delay(timeToWait);
-    }
+
+    // // // Compute how long we have until the reach the target frame time in milliseconds
+    // int timeToWait = FRAME_TIME_LENGTH - ( SDL_GetTicks() - ticksLastFrame );
+
+    // // Only delay execution if we are running too fast
+    // if( timeToWait > 0 && timeToWait <= FRAME_TIME_LENGTH)
+    // { 
+    //     SDL_Delay(timeToWait);
+    // }
 
 
 
@@ -87,13 +88,16 @@ void render(void)
     clearColorBuffer(0xFF000000);    
     //---
 
+    // Render the walls and sprites
     renderWallProjection();
+    renderSpriteProjection();
 
     //---
     // minimap
-    renderMap();
-    renderRays();
-    renderPlayer();
+    renderMapGrid();
+    renderMapRays();
+    renderMapSprites();
+    renderMapPlayer();
     //---
 
     
@@ -102,7 +106,7 @@ void render(void)
 }
 
 void releaseResources(void) {
-    freeWallTextures();
+    freeTextures();
     destroyWindow();
 }
 

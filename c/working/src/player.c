@@ -29,7 +29,7 @@ void movePlayer(float deltaTime)
 }
 
 
-void renderPlayer(void) 
+void renderMapPlayer(void) 
 {
     // SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
     // //note -10 is the offset the player position to the center of the square

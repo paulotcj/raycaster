@@ -259,7 +259,7 @@ void castAllRays(void)
 }
 
 
-void renderRays(void) 
+void renderMapRays(void) 
 {
     //for (int i = 0; i < NUM_RAYS; i += 50) 
     for (int i = 0; i < NUM_RAYS; i += 30 ) 

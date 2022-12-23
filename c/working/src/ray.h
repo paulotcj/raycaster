@@ -26,6 +26,6 @@ bool isRayFacingLeft(float angle);
 bool isRayFacingRight(float angle);
 void castAllRays(void);
 void castRay(float rayAngle, int stripId);
-void renderRays(void);
+void renderMapRays(void);
 
 #endif
