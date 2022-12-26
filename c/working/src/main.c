@@ -56,18 +56,18 @@ void processInput(void)
 
 void update(void) 
 {
+    // Compute how long we have until the reach the target frame time in milliseconds
+    // while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
+
+
     // // Compute how long we have until the reach the target frame time in milliseconds
-    // // while( !SDL_TICKS_PASSED(SDL_GetTicks(), ticksLastFrame + FRAME_TIME_LENGTH)    );
+    int timeToWait = FRAME_TIME_LENGTH - ( SDL_GetTicks() - ticksLastFrame );
 
-
-    // // // Compute how long we have until the reach the target frame time in milliseconds
-    // int timeToWait = FRAME_TIME_LENGTH - ( SDL_GetTicks() - ticksLastFrame );
-
-    // // Only delay execution if we are running too fast
-    // if( timeToWait > 0 && timeToWait <= FRAME_TIME_LENGTH)
-    // { 
-    //     SDL_Delay(timeToWait);
-    // }
+    // Only delay execution if we are running too fast
+    if( timeToWait > 0 && timeToWait <= FRAME_TIME_LENGTH)
+    { 
+        SDL_Delay(timeToWait);
+    }
 
 
 
