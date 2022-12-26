@@ -3,7 +3,7 @@
 
 #include <stdbool.h>
 #include <limits.h>
-#include "constants.h"
+#include "defs.h"
 #include "graphics.h"
 #include "player.h"
 
@@ -18,8 +18,6 @@ typedef struct {
 
 extern ray_t rays[NUM_RAYS];
 
-void normalizeAngle(float* angle);
-float distanceBetweenPoints(float x1, float y1, float x2, float y2);
 bool isRayFacingUp(float angle);
 bool isRayFacingDown(float angle);
 bool isRayFacingLeft(float angle);

@@ -59,7 +59,7 @@ void renderMapPlayer(void)
         (player.y-10) * MINIMAP_SCALE_FACTOR,
         player.width * MINIMAP_SCALE_FACTOR,
         player.height * MINIMAP_SCALE_FACTOR,
-        0xFFFF0000
+        0xFFFFFFFF
     );
 
     drawLine(

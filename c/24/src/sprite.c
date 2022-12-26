@@ -7,7 +7,8 @@ static sprite_t sprites[NUM_SPRITES] =
     { .x = 640, .y = 630, .texture = 9 } // barrel    
 };
 
-void renderMapSprites(void) {
+void renderMapSprites(void) 
+{
     for (int i = 0; i < NUM_SPRITES; i++) 
     {
         drawRect(
@@ -20,6 +21,7 @@ void renderMapSprites(void) {
     }
 }
 
-void renderSpriteProjection(void) {
+void renderSpriteProjection(void) 
+{
     // TODO:
 }

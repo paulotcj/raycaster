@@ -1,24 +1,9 @@
 #include "ray.h"
+#include "utils.h"
 
 ray_t rays[NUM_RAYS];
 
-void normalizeAngle(float* angle)
-{
-    *angle = remainder(*angle, TWO_PI);
-    if( *angle < 0 )
-    {
-        //2*pi would reset the angle to the start (or end, depending of your preference) position
-        // but that might translate into a hiccup
-        // by doing (2*pi) + angle  the transition is seamless
-        *angle = TWO_PI + *angle;
-    }
 
-
-}
-
-float distanceBetweenPoints(float x1, float y1, float x2, float y2) {
-    return sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-}
 //---------
 bool isRayFacingDown(float angle) 
 {
@@ -261,7 +246,7 @@ void castAllRays(void)
 
 void renderMapRays(void) 
 {
-    //for (int i = 0; i < NUM_RAYS; i += 50) 
+
     for (int i = 0; i < NUM_RAYS; i += 30 ) 
     {
         drawLine(
