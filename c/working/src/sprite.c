@@ -1,14 +1,15 @@
 #include "sprite.h"
 #include "utils.h"
 
-#define NUM_SPRITES 4
+#define NUM_SPRITES 1
+
 
 static sprite_t sprites[NUM_SPRITES] = 
 {
-    { .x = 640, .y = 630, .texture =  9 }, // barrel 
-    { .x = 660, .y = 690, .texture =  9 }, // barrel 
-    { .x = 250, .y = 600, .texture = 11 }, // table 
-    { .x = 300, .y = 400, .texture = 12 }, // guard 
+    { .x = 640, .y = 630, .texture =  8 }, // barrel 
+    // { .x = 660, .y = 690, .texture =  8 }, // barrel 
+    // { .x = 250, .y = 600, .texture = 10 }, // table 
+    // { .x = 300, .y = 400, .texture = 11 }, // guard 
 };
 
 void renderMapSprites(void) 
@@ -33,19 +34,43 @@ void renderSpriteProjection(void)
     // Find sprites that are visible (inside the FOV)
     for (int i = 0; i < NUM_SPRITES; i++) 
     {
-        //printf("sprites[i].y: %f, player.y: %f, sprites[i].y - player.y: %f\n",sprites[i].y, player.y, sprites[i].y - player.y);
-        //printf("sprites[i].x: %f, player.x: %f, sprites[i].x - player.x: %f\n",sprites[i].x, player.x, sprites[i].x - player.x);
+        // printf("sprites[i].y: %f, player.y: %f, sprites[i].y - player.y: %f\n",sprites[i].y, player.y, sprites[i].y - player.y);
+        // printf("sprites[i].x: %f, player.x: %f, sprites[i].x - player.x: %f\n",sprites[i].x, player.x, sprites[i].x - player.x);
+        // printf("player.rotationAngle: %f, atan2(sprites[i].y - player.y, sprites[i].x - player.x): %f\n",player.rotationAngle,atan2(sprites[i].y - player.y, sprites[i].x - player.x));
+        // printf("player.rotationAngle - atan2(sprites[i].y - player.y, sprites[i].x - player.x): %f \n",player.rotationAngle - atan2(sprites[i].y - player.y, sprites[i].x - player.x));
+
+        // We need to get the angle between the player and the sprite so we can define if the sprite is
+        //  inside the FOV
+        //
+        //    [x]
+        //     ____ ----> opp (x)
+        //     \  |
+        //  hyp \ | adj (y)
+        //       \|
+        //        P  -------> get this angle = arctan(opp,adj) = arctan(len_x , len_y )
+        //
+        //We have 2 sides of a triangle, indicated by
+        //  length X and length Y. E.g.: 
+        // sprites[i].y: 630.000000, player.y: 472.856110, sprites[i].y - player.y: 157.143890
+        // sprites[i].x: 640.000000, player.x: 612.142639, sprites[i].x - player.x: 27.857361
+        // player.rotationAngle: 1.376799, atan2(sprites[i].y - player.y, sprites[i].x - player.x): 1.395346
+        // player.rotationAngle - atan2(sprites[i].y - player.y, sprites[i].x - player.x) = -0.018547
+
         float angleSpritePlayer = player.rotationAngle - atan2(sprites[i].y - player.y, sprites[i].x - player.x);
         
+        printf("angleSpritePlayer: %f\n",angleSpritePlayer);
+
         // Make sure the angle is always between 0 and 180 degrees
         // angleSpritePlayer > 180
         if (angleSpritePlayer > PI) 
         {
             angleSpritePlayer -= TWO_PI;
+            printf("angleSpritePlayer > PI | angleSpritePlayer -= TWO_PI | angleSpritePlayer:%f   \n",angleSpritePlayer);
         }
         if (angleSpritePlayer < -PI)
         {
             angleSpritePlayer += TWO_PI;
+            printf("angleSpritePlayer < -PI | angleSpritePlayer += TWO_PI | angleSpritePlayer:%f   \n",angleSpritePlayer);
         }
         angleSpritePlayer = fabs(angleSpritePlayer);
 
