@@ -62,19 +62,21 @@ void renderSpriteProjection(void)
 
         // Make sure the angle is always between 0 and 180 degrees
         // angleSpritePlayer > 180
+        // note: the angle measurement is equivalent to say if things are at your left or right. When the 
+        //  angle is more than 180deg you can say the sprite changed from right to left of the player
         if (angleSpritePlayer > PI) 
         {
             angleSpritePlayer -= TWO_PI;
-            printf("angleSpritePlayer > PI | angleSpritePlayer -= TWO_PI | angleSpritePlayer:%f   \n",angleSpritePlayer);
         }
         if (angleSpritePlayer < -PI)
         {
             angleSpritePlayer += TWO_PI;
-            printf("angleSpritePlayer < -PI | angleSpritePlayer += TWO_PI | angleSpritePlayer:%f   \n",angleSpritePlayer);
         }
         angleSpritePlayer = fabs(angleSpritePlayer);
 
         // If sprite angle is less than half the FOV plus a small margin
+        //  we don't want sprited disappearing right in front of our eyes, so sprites stop being rendered
+        //  only when its edges are all out of sight
         const float EPSILON = 0.2;
 		if (angleSpritePlayer < (FOV_ANGLE / 2) + EPSILON) 
         {
@@ -90,6 +92,8 @@ void renderSpriteProjection(void)
         }
     }
 
+
+    //-------
     // Sort sprites by distance using a naive bubble-sort algorithm
     for (int i = 0; i < numVisibleSprites - 1; i++) 
     {
@@ -102,8 +106,10 @@ void renderSpriteProjection(void)
                 visibleSprites[j] = temp;
             }
         }
-    }    
+    }  
+    //-------  
  
+    //-------
     // Rendering all the visible sprites
     for (int i = 0; i < numVisibleSprites; i++) 
     {
@@ -121,7 +127,7 @@ void renderSpriteProjection(void)
         float spriteBottomY = (WINDOW_HEIGHT / 2) + (spriteHeight / 2);
         spriteBottomY = (spriteBottomY > WINDOW_HEIGHT) ? WINDOW_HEIGHT : spriteBottomY;
 
-                // Calculate the sprite X position in the projection plane
+        // Calculate the sprite X position in the projection plane
         float spriteAngle = atan2(sprite.y - player.y, sprite.x - player.x) - player.rotationAngle;
         float spriteScreenPosX = tan(spriteAngle) * DIST_PROJ_PLANE;
 
@@ -158,5 +164,6 @@ void renderSpriteProjection(void)
                 }
             }
         }
-    }
+    } // Rendering all the visible sprites - end
+    //-------
 }
