@@ -12,6 +12,8 @@
 
 bool isGameRunning = false;
 int ticksLastFrame = 0;
+int frameCount = 0;
+int previousSecondTicks = 0;
 
 void setup(void) 
 {

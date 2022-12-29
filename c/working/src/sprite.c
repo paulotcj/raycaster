@@ -1,15 +1,17 @@
 #include "sprite.h"
 #include "utils.h"
+#include "ray.h"
 
-#define NUM_SPRITES 1
+#define NUM_SPRITES 5
 
 
 static sprite_t sprites[NUM_SPRITES] = 
 {
-    { .x = 640, .y = 630, .texture =  8 }, // barrel 
-    // { .x = 660, .y = 690, .texture =  8 }, // barrel 
-    // { .x = 250, .y = 600, .texture = 10 }, // table 
-    // { .x = 300, .y = 400, .texture = 11 }, // guard 
+    { .x = 640, .y = 630, .texture =  9 }, // barrel 
+    { .x = 660, .y = 690, .texture =  9 }, // barrel 
+    { .x = 250, .y = 600, .texture = 11 }, // table 
+    { .x = 250, .y = 600, .texture = 10 }, // light 
+    { .x = 300, .y = 400, .texture = 12 }  // guard
 };
 
 void renderMapSprites(void) 
@@ -157,7 +159,7 @@ void renderSpriteProjection(void)
                     color_t* spriteTextureBuffer = (color_t*) upng_get_buffer(textures[sprite.texture]);
                     color_t texelColor = spriteTextureBuffer[(textureWidth * textureOffsetY) + textureOffsetX];
                 
-                    if (texelColor != 0xFFFF00FF) 
+                    if (sprite.distance < rays[x].distance && texelColor != 0xFFFF00FF)
                     {
                         drawPixel(x, y, texelColor);
                     }
