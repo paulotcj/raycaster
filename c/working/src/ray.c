@@ -47,7 +47,7 @@ void castRay(float rayAngle, int stripId)
     bool foundHorzWallHit = false;
     float horzWallHitX = 0;
     float horzWallHitY = 0;
-    int horzWallContent = 0;
+    int horzWallTexture = 0;
 
     //------------------------
     // INTERCEPT SECTION - START
@@ -101,7 +101,7 @@ void castRay(float rayAngle, int stripId)
             // found a wall hit
             horzWallHitX = nextHorzTouchX;
             horzWallHitY = nextHorzTouchY;
-            horzWallContent = getMapAt((int)floor(yToCheck / TILE_SIZE), (int)floor(xToCheck / TILE_SIZE));
+            horzWallTexture = getMapAt((int)floor(yToCheck / TILE_SIZE), (int)floor(xToCheck / TILE_SIZE));
             foundHorzWallHit = true;
             break;
         }
@@ -118,7 +118,7 @@ void castRay(float rayAngle, int stripId)
     bool foundVertWallHit = false;
     float vertWallHitX = 0;
     float vertWallHitY = 0;
-    int vertWallContent = 0;
+    int vertWallTexture = 0;
 
     //------------------------
     // INTERCEPT SECTION - START
@@ -159,7 +159,7 @@ void castRay(float rayAngle, int stripId)
             // found a wall hit
             vertWallHitX = nextVertTouchX;
             vertWallHitY = nextVertTouchY;
-            vertWallContent = getMapAt((int)floor(yToCheck / TILE_SIZE), (int)floor(xToCheck / TILE_SIZE));
+                vertWallTexture = getMapAt((int)floor(yToCheck / TILE_SIZE), (int)floor(xToCheck / TILE_SIZE));
             foundVertWallHit = true;
             break;
         } 
@@ -187,7 +187,7 @@ void castRay(float rayAngle, int stripId)
         rays[stripId].distance = vertHitDistance;
         rays[stripId].wallHitX = vertWallHitX;
         rays[stripId].wallHitY = vertWallHitY;
-        rays[stripId].wallHitContent = vertWallContent;
+        rays[stripId].texture = vertWallTexture;
         rays[stripId].wasHitVertical = true;
         rays[stripId].rayAngle = rayAngle;
     } 
@@ -196,7 +196,7 @@ void castRay(float rayAngle, int stripId)
         rays[stripId].distance = horzHitDistance;
         rays[stripId].wallHitX = horzWallHitX;
         rays[stripId].wallHitY = horzWallHitY;
-        rays[stripId].wallHitContent = horzWallContent;
+        rays[stripId].texture = horzWallTexture;
         rays[stripId].wasHitVertical = false;
         rays[stripId].rayAngle = rayAngle;
 

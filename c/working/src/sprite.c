@@ -2,16 +2,17 @@
 #include "utils.h"
 #include "ray.h"
 
-#define NUM_SPRITES 5
+#define NUM_SPRITES 6
 
 
 static sprite_t sprites[NUM_SPRITES] = 
 {
-    { .x = 640, .y = 630, .texture =  9 }, // barrel 
-    { .x = 660, .y = 690, .texture =  9 }, // barrel 
-    { .x = 250, .y = 600, .texture = 11 }, // table 
-    { .x = 250, .y = 600, .texture = 10 }, // light 
-    { .x = 300, .y = 400, .texture = 12 }  // guard
+    { .x = 640, .y = 630, .texture =  8 }, // barrel 
+    { .x = 660, .y = 690, .texture =  8 }, // barrel 
+    { .x = 250, .y = 600, .texture = 10 }, // table 
+    { .x = 250, .y = 600, .texture = 9 }, // light 
+    { .x = 300, .y = 400, .texture = 11 }, // guard
+    { .x =  90, .y = 100, .texture = 12 }  // armor
 };
 
 void renderMapSprites(void) 
@@ -117,8 +118,11 @@ void renderSpriteProjection(void)
     {
         sprite_t sprite = visibleSprites[i];
 
+        // Calculate the perpendicular distance of the sprite to prevent fish-eye effect
+        float perpDistance = sprite.distance * cos(sprite.angle);
+
         // Calculate the sprite projected height and width (the same, as sprites are squared)
-        float spriteHeight = (TILE_SIZE / sprite.distance) * DIST_PROJ_PLANE;
+        float spriteHeight = (TILE_SIZE / perpDistance) * DIST_PROJ_PLANE;
         float spriteWidth = spriteHeight;
 
         // Sprite top Y
