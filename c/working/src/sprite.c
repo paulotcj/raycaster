@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "ray.h"
 
-#define NUM_SPRITES 6
+#define NUM_SPRITES 7
 
 
 static sprite_t sprites[NUM_SPRITES] = 
@@ -10,7 +10,8 @@ static sprite_t sprites[NUM_SPRITES] =
     { .x = 640, .y = 630, .texture =  8 }, // barrel 
     { .x = 660, .y = 690, .texture =  8 }, // barrel 
     { .x = 250, .y = 600, .texture = 10 }, // table 
-    { .x = 250, .y = 600, .texture = 9 }, // light 
+    { .x = 250, .y = 600, .texture = 9  }, // light 
+    { .x = 250, .y = 600, .texture = 11 }, // guard
     { .x = 300, .y = 400, .texture = 11 }, // guard
     { .x =  90, .y = 100, .texture = 12 }  // armor
 };
@@ -61,7 +62,7 @@ void renderSpriteProjection(void)
 
         float angleSpritePlayer = player.rotationAngle - atan2(sprites[i].y - player.y, sprites[i].x - player.x);
         
-        printf("angleSpritePlayer: %f\n",angleSpritePlayer);
+        //printf("angleSpritePlayer: %f\n",angleSpritePlayer);
 
         // Make sure the angle is always between 0 and 180 degrees
         // angleSpritePlayer > 180
@@ -102,9 +103,12 @@ void renderSpriteProjection(void)
     {
         for (int j = i + 1; j < numVisibleSprites; j++) 
         {
+            //  closer                        farther
             if (visibleSprites[i].distance < visibleSprites[j].distance) 
             {
                 sprite_t temp = visibleSprites[i];
+                //swap places, lower indexes will have objects farther away, and they will
+                //  be drawn first
                 visibleSprites[i] = visibleSprites[j];
                 visibleSprites[j] = temp;
             }
@@ -133,11 +137,26 @@ void renderSpriteProjection(void)
         float spriteBottomY = (WINDOW_HEIGHT / 2) + (spriteHeight / 2);
         spriteBottomY = (spriteBottomY > WINDOW_HEIGHT) ? WINDOW_HEIGHT : spriteBottomY;
 
+        
+        //-----
+
         // Calculate the sprite X position in the projection plane
         float spriteAngle = atan2(sprite.y - player.y, sprite.x - player.x) - player.rotationAngle;
+        //printf("spriteAngle: %f\n",spriteAngle);
+        
         float spriteScreenPosX = tan(spriteAngle) * DIST_PROJ_PLANE;
-
+        //printf("tan(spriteAngle): %f, DIST_PROJ_PLANE: %f, spriteScreenPosX: %f\n",tan(spriteAngle),DIST_PROJ_PLANE,spriteScreenPosX);
+        //printf("spriteWidth: %f\n",spriteWidth);
         // SpriteLeftX
+        // the formula can be translated as: 
+        //  (middle of the screen) + (X axis offset position relative to the middle of the screen) 
+        //     - (offset center of sprite)
+        // so suppose we have: WINDOW_WIDTH = 1280px , spriteScreenPosX: 111px, spriteWidth = 500px
+        //  (WINDOW_WIDTH / 2) + spriteScreenPosX - (spriteWidth / 2) = 
+        //  (1280 / 2) + 111 - (500 / 2) = (640) + 111 - (250) =>
+        //  (640 -> center of the screen) + (sprite is 111px to the right) => this is the center of the sprite
+        //  but the sprite is 500px wide, and should start being rendered 250px to the left, so we subtract
+        //  250px from the center position of the sprite
         float spriteLeftX = (WINDOW_WIDTH / 2) + spriteScreenPosX - (spriteWidth / 2);
 
         // SpriteRightX
@@ -150,24 +169,47 @@ void renderSpriteProjection(void)
         // Loop all the x values
         for (int x = spriteLeftX; x < spriteRightX; x++) 
         {
+            //strech or compress sprite's pixel width
             float texelWidth = (textureWidth / spriteWidth);
+
+
             int textureOffsetX = (x - spriteLeftX) * texelWidth;
 
             // Loop all the y values
             for (int y = spriteTopY; y < spriteBottomY; y++) 
             {
-                if (x > 0 && x < WINDOW_WIDTH && y > 0 && y < WINDOW_HEIGHT) {
+                if (x > 0 && x < WINDOW_WIDTH && 
+                    y > 0 && y < WINDOW_HEIGHT) 
+                {
+                    // e.g.: WINDOW_HEIGHT = 800, spriteHeight = 384.14, y = 207
+                    // (WINDOW_HEIGHT / 2) = 400 , (spriteHeight / 2) = 192.07
+                    // y + (spriteHeight / 2) - (WINDOW_HEIGHT / 2) = 207 + (192.07) - 400
+                    // => 207 - 207 = 0  -> as we can see -207 is a constant for this sprite
+                    // and as y increases we advance in the y axis
                     int distanceFromTop = y + (spriteHeight / 2) - (WINDOW_HEIGHT / 2);
+                    // printf("spriteHeight: %f\n",spriteHeight);
+                    // printf("y:%d , (spriteHeight / 2): %f, (WINDOW_HEIGHT / 2): %d\n",y,(spriteHeight / 2), (WINDOW_HEIGHT / 2));
+                    // printf("distanceFromTop:%d\n",distanceFromTop);
+                    // getchar();
+                    
+                    // distanceFromTop * (textureHeight / spriteHeight) = 0 * (64 / 381.70)
+                    // 0 * 0.1676, 1 * 0.1676, ... , n * 0.1676
+                    // printf("distanceFromTop: %d, textureHeight: %d, spriteHeight: %f  \n",distanceFromTop,textureHeight,spriteHeight);
                     int textureOffsetY = distanceFromTop * (textureHeight / spriteHeight);
+                    // printf("textureOffsetY: %d\n",textureOffsetY);
+                    // getchar();
+
 
                     color_t* spriteTextureBuffer = (color_t*) upng_get_buffer(textures[sprite.texture]);
                     color_t texelColor = spriteTextureBuffer[(textureWidth * textureOffsetY) + textureOffsetX];
                 
+                    //don't draw the transparency colour (0xFFFF00FF) - 0xAABBGGRR
                     if (sprite.distance < rays[x].distance && texelColor != 0xFFFF00FF)
                     {
                         drawPixel(x, y, texelColor);
                     }
                 }
+                
             }
         }
     } // Rendering all the visible sprites - end
