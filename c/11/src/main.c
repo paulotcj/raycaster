@@ -474,16 +474,16 @@ void renderMap()
 
     //------------------
     //test coordinates - start
-    SDL_Rect mapTileRect2 = 
-    {
-        0 + 800, //x
-        0 + 200 ,//y
-        TILE_SIZE, //width
-        TILE_SIZE  //height
-    };
+    // SDL_Rect mapTileRect2 = 
+    // {
+    //     0 + 800, //x
+    //     0 + 200 ,//y
+    //     TILE_SIZE, //width
+    //     TILE_SIZE  //height
+    // };
 
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_RenderFillRect(renderer , &mapTileRect2);
+    // SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    // SDL_RenderFillRect(renderer , &mapTileRect2);
 
     //test coordinates - end
     //------------------

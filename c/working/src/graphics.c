@@ -28,7 +28,7 @@ bool initializeWindow(void)
         SDL_WINDOWPOS_CENTERED,
         fullScreenWidth,
         fullScreenHeight,
-        SDL_WINDOW_BORDERLESS
+        SDL_WINDOW_FULLSCREEN_DESKTOP
     );
 
     if (!window) 
